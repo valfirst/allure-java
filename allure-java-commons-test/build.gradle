@@ -11,4 +11,6 @@ configurations {
 
 dependencies {
     compile project(':allure-java-commons')
+    compile 'commons-io:commons-io'
+    compile 'org.assertj:assertj-core'
 }

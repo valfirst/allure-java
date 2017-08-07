@@ -1,9 +1,7 @@
 package io.qameta.allure.listener;
 
-import io.qameta.allure.model.FixtureResult;
 import io.qameta.allure.model.StepResult;
 import io.qameta.allure.model.TestResult;
-import io.qameta.allure.model.TestResultContainer;
 
 import java.util.List;
 
@@ -11,27 +9,17 @@ import java.util.List;
  * @since 2.0
  */
 @SuppressWarnings("PMD.TooManyMethods")
-public class LifecycleNotifier implements ContainerLifecycleListener,
-        TestLifecycleListener, FixtureLifecycleListener, StepLifecycleListener {
-
-    private final List<ContainerLifecycleListener> containerListeners;
+public class LifecycleNotifier implements TestLifecycleListener, StepLifecycleListener {
 
     private final List<TestLifecycleListener> testListeners;
 
-    private final List<FixtureLifecycleListener> fixtureListeners;
-
     private final List<StepLifecycleListener> stepListeners;
 
-    public LifecycleNotifier(final List<ContainerLifecycleListener> containerListeners,
-                             final List<TestLifecycleListener> testListeners,
-                             final List<FixtureLifecycleListener> fixtureListeners,
+    public LifecycleNotifier(final List<TestLifecycleListener> testListeners,
                              final List<StepLifecycleListener> stepListeners) {
-        this.containerListeners = containerListeners;
         this.testListeners = testListeners;
-        this.fixtureListeners = fixtureListeners;
         this.stepListeners = stepListeners;
     }
-
 
     @Override
     public void beforeTestSchedule(final TestResult result) {
@@ -81,76 +69,6 @@ public class LifecycleNotifier implements ContainerLifecycleListener,
     @Override
     public void afterTestWrite(final TestResult result) {
         testListeners.forEach(listener -> listener.afterTestWrite(result));
-    }
-
-    @Override
-    public void beforeContainerStart(final TestResultContainer container) {
-        containerListeners.forEach(listener -> listener.beforeContainerStart(container));
-    }
-
-    @Override
-    public void afterContainerStart(final TestResultContainer container) {
-        containerListeners.forEach(listener -> listener.afterContainerStart(container));
-    }
-
-    @Override
-    public void beforeContainerUpdate(final TestResultContainer container) {
-        containerListeners.forEach(listener -> listener.beforeContainerUpdate(container));
-    }
-
-    @Override
-    public void afterContainerUpdate(final TestResultContainer container) {
-        containerListeners.forEach(listener -> listener.afterContainerUpdate(container));
-    }
-
-    @Override
-    public void beforeContainerStop(final TestResultContainer container) {
-        containerListeners.forEach(listener -> listener.beforeContainerStop(container));
-    }
-
-    @Override
-    public void afterContainerStop(final TestResultContainer container) {
-        containerListeners.forEach(listener -> listener.afterContainerStop(container));
-    }
-
-    @Override
-    public void beforeContainerWrite(final TestResultContainer container) {
-        containerListeners.forEach(listener -> listener.beforeContainerWrite(container));
-    }
-
-    @Override
-    public void afterContainerWrite(final TestResultContainer container) {
-        containerListeners.forEach(listener -> listener.afterContainerWrite(container));
-    }
-
-    @Override
-    public void beforeFixtureStart(final FixtureResult result) {
-        fixtureListeners.forEach(listener -> listener.beforeFixtureStart(result));
-    }
-
-    @Override
-    public void afterFixtureStart(final FixtureResult result) {
-        fixtureListeners.forEach(listener -> listener.afterFixtureStart(result));
-    }
-
-    @Override
-    public void beforeFixtureUpdate(final FixtureResult result) {
-        fixtureListeners.forEach(listener -> listener.beforeFixtureUpdate(result));
-    }
-
-    @Override
-    public void afterFixtureUpdate(final FixtureResult result) {
-        fixtureListeners.forEach(listener -> listener.afterFixtureUpdate(result));
-    }
-
-    @Override
-    public void beforeFixtureStop(final FixtureResult result) {
-        fixtureListeners.forEach(listener -> listener.beforeFixtureStop(result));
-    }
-
-    @Override
-    public void afterFixtureStop(final FixtureResult result) {
-        fixtureListeners.forEach(listener -> listener.afterFixtureStop(result));
     }
 
     @Override
