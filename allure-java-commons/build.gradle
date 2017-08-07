@@ -10,14 +10,15 @@ configurations {
 }
 
 dependencies {
+    compile project(':allure-model')
     agent 'org.aspectj:aspectjweaver'
 
-    compile 'io.qameta.allure:allure2-model-api'
     compile 'org.slf4j:slf4j-api'
     compile 'org.aspectj:aspectjrt'
     compile 'com.google.guava:guava'
     compile 'org.jooq:joor'
     compile 'org.apache.commons:commons-lang3'
+    compile 'com.fasterxml.jackson.core:jackson-databind'
 
     testCompile 'junit:junit'
     testCompile 'org.slf4j:slf4j-simple'

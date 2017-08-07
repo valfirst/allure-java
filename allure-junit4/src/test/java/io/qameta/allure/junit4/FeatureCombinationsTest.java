@@ -1,7 +1,7 @@
 package io.qameta.allure.junit4;
 
 import io.qameta.allure.AllureLifecycle;
-import io.qameta.allure.aspects.StepsAspects;
+import io.qameta.allure.aspect.StepsAspects;
 import io.qameta.allure.junit4.samples.AssumptionFailedTest;
 import io.qameta.allure.junit4.samples.BrokenTest;
 import io.qameta.allure.junit4.samples.FailedTest;

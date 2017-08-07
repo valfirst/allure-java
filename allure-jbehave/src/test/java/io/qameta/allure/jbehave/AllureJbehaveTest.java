@@ -1,8 +1,8 @@
 package io.qameta.allure.jbehave;
 
 import io.qameta.allure.AllureLifecycle;
-import io.qameta.allure.aspects.AttachmentsAspects;
-import io.qameta.allure.aspects.StepsAspects;
+import io.qameta.allure.aspect.AttachmentsAspects;
+import io.qameta.allure.aspect.StepsAspects;
 import io.qameta.allure.jbehave.steps.StackSteps;
 import io.qameta.allure.model.Status;
 import io.qameta.allure.model.TestResult;

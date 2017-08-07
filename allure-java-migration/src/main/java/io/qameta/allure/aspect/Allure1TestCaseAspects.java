@@ -1,4 +1,4 @@
-package io.qameta.allure.aspects;
+package io.qameta.allure.aspect;
 
 import io.qameta.allure.Allure;
 import io.qameta.allure.AllureLifecycle;
@@ -10,7 +10,7 @@ import org.aspectj.lang.reflect.MethodSignature;
 import java.util.Objects;
 
 /**
- * Allure junit aspects.
+ * Allure junit aspect.
  */
 @Aspect
 public class Allure1TestCaseAspects {

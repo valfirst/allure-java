@@ -1,4 +1,4 @@
-package io.qameta.allure.aspects;
+package io.qameta.allure.aspect;
 
 import io.qameta.allure.Allure;
 import io.qameta.allure.AllureLifecycle;
@@ -18,8 +18,8 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.IntStream;
 
-import static io.qameta.allure.aspects.Allure1Utils.getName;
-import static io.qameta.allure.aspects.Allure1Utils.getTitle;
+import static io.qameta.allure.aspect.Allure1Utils.getName;
+import static io.qameta.allure.aspect.Allure1Utils.getTitle;
 import static io.qameta.allure.util.ResultsUtils.getStatus;
 import static io.qameta.allure.util.ResultsUtils.getStatusDetails;
 
