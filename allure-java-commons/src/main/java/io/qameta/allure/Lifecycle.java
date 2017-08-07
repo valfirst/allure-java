@@ -85,9 +85,7 @@ public class Lifecycle {
 
     public synchronized void writeTest(final String uuid) {
         Objects.requireNonNull(uuid, "Uuid should not be null value");
-        Optional.ofNullable(results.remove(uuid)).ifPresent(
-            result -> writer.writeResult(result)
-        );
+        Optional.ofNullable(results.remove(uuid)).ifPresent(writer::writeResult);
     }
 
     public synchronized void startStep(final StepResult result) {

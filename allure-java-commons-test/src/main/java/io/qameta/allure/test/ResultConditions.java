@@ -22,7 +22,7 @@ public final class ResultConditions {
 
     public static Condition<List<? extends Executable>> hasStepsCount(final long count) {
         return new Condition<>(
-            executables -> executables.stream().allMatch(executable -> executable.getSteps().size() == 1),
+                executables -> executables.stream().allMatch(executable -> executable.getSteps().size() == 1),
                 String.format("All items should have %d steps", count)
         );
     }
