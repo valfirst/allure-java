@@ -1,8 +1,8 @@
 package io.qameta.allure.junit5;
 
 import io.qameta.allure.AllureLifecycle;
-import io.qameta.allure.aspects.AttachmentsAspects;
-import io.qameta.allure.aspects.StepsAspects;
+import io.qameta.allure.aspect.AttachmentsAspects;
+import io.qameta.allure.aspect.StepsAspects;
 import io.qameta.allure.junit5.features.*;
 import io.qameta.allure.model.*;
 import io.qameta.allure.test.AllureResultsWriterStub;

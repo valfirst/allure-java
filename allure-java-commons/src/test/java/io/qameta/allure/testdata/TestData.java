@@ -2,7 +2,10 @@ package io.qameta.allure.testdata;
 
 import io.qameta.allure.model.Label;
 import io.qameta.allure.model.Link;
+import io.qameta.allure.model.StepResult;
 import io.qameta.allure.model.TestResult;
+
+import java.util.UUID;
 
 import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
 
@@ -11,7 +14,7 @@ import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
  */
 public final class TestData {
 
-    TestData() {
+    private TestData() {
         throw new IllegalStateException("Do not instance");
     }
 
@@ -21,19 +24,25 @@ public final class TestData {
 
     public static Label randomLabel() {
         return new Label()
-                .withName(randomString())
-                .withValue(randomString());
+                .setName(randomString())
+                .setValue(randomString());
     }
 
     public static TestResult randomTestResult() {
         return new TestResult()
-                .withName(randomString());
+                .setUuid(UUID.randomUUID().toString())
+                .setName(randomString());
+    }
+
+    public static StepResult randomStepResult() {
+        return new StepResult()
+                .setName(randomString());
     }
 
     public static Link randomLink() {
         return new Link()
-                .withName(randomString())
-                .withType(randomString())
-                .withUrl(randomString());
+                .setName(randomString())
+                .setType(randomString())
+                .setUrl(randomString());
     }
 }

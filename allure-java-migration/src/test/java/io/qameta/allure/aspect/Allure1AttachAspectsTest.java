@@ -1,4 +1,4 @@
-package io.qameta.allure.aspects;
+package io.qameta.allure.aspect;
 
 import io.qameta.allure.AllureLifecycle;
 import io.qameta.allure.model.TestResult;

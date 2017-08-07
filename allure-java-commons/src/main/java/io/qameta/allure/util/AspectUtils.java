@@ -7,6 +7,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
@@ -18,12 +20,12 @@ public final class AspectUtils {
         throw new IllegalStateException("Do not instance");
     }
 
-    public static Parameter[] getParameters(final MethodSignature signature, final Object... args) {
+    public static Set<Parameter> getParameters(final MethodSignature signature, final Object... args) {
         return IntStream.range(0, args.length).mapToObj(index -> {
             final String name = signature.getParameterNames()[index];
             final String value = objectToString(args[index]);
-            return new Parameter().withName(name).withValue(value);
-        }).toArray(Parameter[]::new);
+            return new Parameter().setName(name).setValue(value);
+        }).collect(Collectors.toSet());
     }
 
     public static Map<String, Object> getParametersMap(final MethodSignature signature, final Object... args) {
