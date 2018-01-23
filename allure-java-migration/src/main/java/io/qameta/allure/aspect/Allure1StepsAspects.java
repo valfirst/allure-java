@@ -16,7 +16,6 @@ import ru.yandex.qatools.allure.annotations.Step;
 
 import java.util.Objects;
 import java.util.Set;
-import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -47,7 +46,6 @@ public class Allure1StepsAspects {
     @Before("anyMethod() && withStepAnnotation()")
     public void stepStart(final JoinPoint joinPoint) {
         final MethodSignature methodSignature = (MethodSignature) joinPoint.getSignature();
-        final String uuid = UUID.randomUUID().toString();
         final StepResult result = new StepResult()
                 .setName(createTitle(joinPoint))
                 .setParameters(getParameters(methodSignature, joinPoint.getArgs()));

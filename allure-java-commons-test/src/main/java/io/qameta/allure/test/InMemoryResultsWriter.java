@@ -46,12 +46,10 @@ public class InMemoryResultsWriter implements ResultsWriter {
                     LOGGER.error("Could not write attachment content", e);
                 }
             }
-
             @Override
             public void withContent(final byte[] content) {
                 attachments.put(fileName, content);
             }
-
             @Override
             public void withContent(final String content) {
                 attachments.put(fileName, content.getBytes(UTF_8));

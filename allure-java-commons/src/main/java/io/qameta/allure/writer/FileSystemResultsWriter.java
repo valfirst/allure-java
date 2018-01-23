@@ -8,7 +8,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.file.Files;
 import java.nio.file.Path;
 
 import static java.nio.file.Files.createDirectories;
@@ -42,7 +41,7 @@ public class FileSystemResultsWriter implements ResultsWriter {
     @Override
     public AttachmentContentWriter writeAttachment(final String fileName) {
         try {
-            final Path outputFile = Files.createDirectories(outputDirectory).resolve(fileName);
+            final Path outputFile = createDirectories(outputDirectory).resolve(fileName);
             return new FileSystemAttachmentContentWriter(outputFile);
         } catch (IOException e) {
             LOGGER.error("Could not write attachment", e);

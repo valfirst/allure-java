@@ -55,6 +55,7 @@ public final class ResultsUtils {
     public static final String THREAD_LABEL_NAME = "thread";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ResultsUtils.class);
+    @SuppressWarnings("PMD.UnusedPrivateField")
     private static final String ALLURE_DESCRIPTIONS_PACKAGE = "allureDescriptions/";
     private static final String MD_5 = "MD5";
 

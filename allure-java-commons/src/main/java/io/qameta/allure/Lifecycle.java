@@ -27,6 +27,7 @@ import static io.qameta.allure.util.ResultsUtils.getStatus;
 /**
  * @author charlie (Dmitry Baev).
  */
+@SuppressWarnings("PMD.AvoidSynchronizedAtMethodLevel")
 public class Lifecycle {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Lifecycle.class);
