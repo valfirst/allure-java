@@ -1,7 +1,7 @@
 package io.qameta.allure.spock;
 
 import io.qameta.allure.Allure;
-import io.qameta.allure.AllureLifecycle;
+import io.qameta.allure.Lifecycle;
 import io.qameta.allure.Epic;
 import io.qameta.allure.Feature;
 import io.qameta.allure.Flaky;
@@ -12,11 +12,9 @@ import io.qameta.allure.Owner;
 import io.qameta.allure.Severity;
 import io.qameta.allure.Story;
 import io.qameta.allure.TmsLink;
-import io.qameta.allure.model.ExecutableItem;
 import io.qameta.allure.model.Label;
 import io.qameta.allure.model.Parameter;
 import io.qameta.allure.model.Status;
-import io.qameta.allure.model.StatusDetails;
 import io.qameta.allure.model.TestResult;
 import io.qameta.allure.util.ResultsUtils;
 import org.junit.runner.Description;
@@ -33,11 +31,12 @@ import java.lang.reflect.Method;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -46,8 +45,9 @@ import java.util.stream.Stream;
 
 import static io.qameta.allure.util.ResultsUtils.firstNonEmpty;
 import static io.qameta.allure.util.ResultsUtils.getHostName;
+import static io.qameta.allure.util.ResultsUtils.getStackTraceAsString;
 import static io.qameta.allure.util.ResultsUtils.getStatus;
-import static io.qameta.allure.util.ResultsUtils.getStatusDetails;
+import static io.qameta.allure.util.ResultsUtils.getStatusMessage;
 import static io.qameta.allure.util.ResultsUtils.getThreadName;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Comparator.comparing;
@@ -69,13 +69,13 @@ public class AllureSpock extends AbstractRunListener implements IGlobalExtension
     private final ThreadLocal<String> testResults
             = InheritableThreadLocal.withInitial(() -> UUID.randomUUID().toString());
 
-    private AllureLifecycle lifecycle;
+    private Lifecycle lifecycle;
 
     public AllureSpock() {
         this(Allure.getLifecycle());
     }
 
-    public AllureSpock(final AllureLifecycle lifecycle) {
+    public AllureSpock(final Lifecycle lifecycle) {
         this.lifecycle = lifecycle;
     }
 
@@ -99,7 +99,7 @@ public class AllureSpock extends AbstractRunListener implements IGlobalExtension
         final String uuid = testResults.get();
         final FeatureInfo feature = iteration.getFeature();
         final SpecInfo spec = feature.getSpec();
-        final List<Parameter> parameters = getParameters(feature.getDataVariables(), iteration.getDataValues());
+        final Set<Parameter> parameters = getParameters(feature.getDataVariables(), iteration.getDataValues());
         final SpecInfo subSpec = spec.getSubSpec();
         final SpecInfo superSpec = spec.getSuperSpec();
         final String packageName = spec.getPackage();
@@ -107,43 +107,41 @@ public class AllureSpock extends AbstractRunListener implements IGlobalExtension
         final String testClassName = feature.getDescription().getClassName();
         final String testMethodName = iteration.getName();
 
-        final List<Label> labels = new ArrayList<>();
+        final Set<Label> labels = new HashSet<>();
         labels.addAll(Arrays.asList(
                 //Packages grouping
-                new Label().withName("package").withValue(packageName),
-                new Label().withName("testClass").withValue(testClassName),
-                new Label().withName("testMethod").withValue(testMethodName),
+                new Label().setName("package").setValue(packageName),
+                new Label().setName("testClass").setValue(testClassName),
+                new Label().setName("testMethod").setValue(testMethodName),
                 //xUnit grouping
-                new Label().withName("suite").withValue(specName),
+                new Label().setName("suite").setValue(specName),
                 //Timeline grouping
-                new Label().withName("host").withValue(getHostName()),
-                new Label().withName("thread").withValue(getThreadName())
+                new Label().setName("host").setValue(getHostName()),
+                new Label().setName("thread").setValue(getThreadName())
         ));
         if (Objects.nonNull(subSpec)) {
-            labels.add(new Label().withName("subSuite").withValue(subSpec.getName()));
+            labels.add(new Label().setName("subSuite").setValue(subSpec.getName()));
         }
         if (Objects.nonNull(superSpec)) {
-            labels.add(new Label().withName("parentSuite").withValue(superSpec.getName()));
+            labels.add(new Label().setName("parentSuite").setValue(superSpec.getName()));
         }
         labels.addAll(getLabels(iteration));
 
         final TestResult result = new TestResult()
-                .withUuid(uuid)
-                .withHistoryId(getHistoryId(getQualifiedName(iteration), parameters))
-                .withName(firstNonEmpty(
+                .setUuid(uuid)
+                .setHistoryId(getHistoryId(getQualifiedName(iteration), parameters))
+                .setName(firstNonEmpty(
                         testMethodName,
                         feature.getDescription().getDisplayName(),
                         getQualifiedName(iteration)).orElse("Unknown"))
-                .withFullName(getQualifiedName(iteration))
-                .withStatusDetails(new StatusDetails()
-                        .withFlaky(isFlaky(iteration))
-                        .withMuted(isMuted(iteration)))
-                .withParameters(parameters)
-                .withLinks(getLinks(iteration))
-                .withLabels(labels);
+                .setFullName(getQualifiedName(iteration))
+                .setFlaky(isFlaky(iteration))
+                .setMuted(isMuted(iteration))
+                .setParameters(parameters)
+                .setLinks(getLinks(iteration))
+                .setLabels(labels);
         processDescription(iteration, result);
-        getLifecycle().scheduleTestCase(result);
-        getLifecycle().startTestCase(uuid);
+        getLifecycle().startTest(result);
     }
 
     private List<Label> getLabels(final IterationInfo iterationInfo) {
@@ -168,11 +166,11 @@ public class AllureSpock extends AbstractRunListener implements IGlobalExtension
                 .map(extractor);
     }
 
-    private void processDescription(final IterationInfo iterationInfo, final ExecutableItem item) {
+    private void processDescription(final IterationInfo iterationInfo, final TestResult item) {
         final List<io.qameta.allure.Description> annotationsOnFeature = getFeatureAnnotations(
                 iterationInfo, io.qameta.allure.Description.class);
         if (!annotationsOnFeature.isEmpty()) {
-            item.withDescription(annotationsOnFeature.get(0).value());
+            item.setDescription(annotationsOnFeature.get(0).value());
         }
     }
 
@@ -180,7 +178,7 @@ public class AllureSpock extends AbstractRunListener implements IGlobalExtension
         return iteration.getDescription().getClassName() + "." + iteration.getName();
     }
 
-    private String getHistoryId(final String name, final List<Parameter> parameters) {
+    private String getHistoryId(final String name, final Set<Parameter> parameters) {
         final MessageDigest digest = getMessageDigest();
         digest.update(name.getBytes(UTF_8));
         parameters.stream()
@@ -221,7 +219,7 @@ public class AllureSpock extends AbstractRunListener implements IGlobalExtension
         return !getFeatureAnnotations(iteration, clazz).isEmpty();
     }
 
-    private List<io.qameta.allure.model.Link> getLinks(final IterationInfo iteration) {
+    private Set<io.qameta.allure.model.Link> getLinks(final IterationInfo iteration) {
         return Stream.of(
                 getSpecAnnotations(iteration, Link.class).stream().map(ResultsUtils::createLink),
                 getFeatureAnnotations(iteration, Link.class).stream().map(ResultsUtils::createLink),
@@ -229,7 +227,7 @@ public class AllureSpock extends AbstractRunListener implements IGlobalExtension
                 getFeatureAnnotations(iteration, Issue.class).stream().map(ResultsUtils::createLink),
                 getSpecAnnotations(iteration, TmsLink.class).stream().map(ResultsUtils::createLink),
                 getFeatureAnnotations(iteration, TmsLink.class).stream().map(ResultsUtils::createLink)
-        ).reduce(Stream::concat).orElseGet(Stream::empty).collect(Collectors.toList());
+        ).reduce(Stream::concat).orElseGet(Stream::empty).collect(Collectors.toSet());
     }
 
     private <T extends Annotation> List<T> getAnnotationsOnMethod(final Description result, final Class<T> clazz) {
@@ -279,10 +277,10 @@ public class AllureSpock extends AbstractRunListener implements IGlobalExtension
 
     @Override
     public void error(final ErrorInfo error) {
-        final String uuid = testResults.get();
-        getLifecycle().updateTestCase(uuid, testResult -> testResult
-                .withStatus(getStatus(error.getException()).orElse(null))
-                .withStatusDetails(getStatusDetails(error.getException()).orElse(null))
+        getLifecycle().updateTest(testResult -> testResult
+                .setStatus(getStatus(error.getException()).orElse(null))
+                .setStatusMessage(getStatusMessage(error.getException()).orElse(null))
+                .setStatusTrace(getStackTraceAsString(error.getException()))
         );
     }
 
@@ -291,24 +289,24 @@ public class AllureSpock extends AbstractRunListener implements IGlobalExtension
         final String uuid = testResults.get();
         testResults.remove();
 
-        getLifecycle().updateTestCase(uuid, testResult -> {
+        getLifecycle().updateTest(testResult -> {
             if (Objects.isNull(testResult.getStatus())) {
                 testResult.setStatus(Status.PASSED);
             }
         });
-        getLifecycle().stopTestCase(uuid);
-        getLifecycle().writeTestCase(uuid);
+        getLifecycle().stopTest();
+        getLifecycle().writeTest(uuid);
     }
 
-    private List<Parameter> getParameters(final List<String> names, final Object... values) {
+    private Set<Parameter> getParameters(final List<String> names, final Object... values) {
         return IntStream.range(0, Math.min(names.size(), values.length))
                 .mapToObj(index -> new Parameter()
-                        .withName(names.get(index))
-                        .withValue(Objects.toString(values[index])))
-                .collect(Collectors.toList());
+                        .setName(names.get(index))
+                        .setValue(Objects.toString(values[index])))
+                .collect(Collectors.toSet());
     }
 
-    public AllureLifecycle getLifecycle() {
+    public Lifecycle getLifecycle() {
         return lifecycle;
     }
 }

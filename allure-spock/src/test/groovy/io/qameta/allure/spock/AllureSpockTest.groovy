@@ -144,16 +144,13 @@ class AllureSpockTest {
 
     private static Predicate<TestResult> flakyPredicate() {
         return {
-            testResult -> (Objects.nonNull(testResult.getStatusDetails())
-                    && testResult.getStatusDetails().isFlaky())
+            testResult -> testResult.isFlaky()
         }
     }
 
     private static Predicate<TestResult> mutedPredicate() {
         return {
-            testResult -> (Objects.nonNull(testResult.getStatusDetails())
-                    && testResult.getStatusDetails().isMuted())
+            testResult -> testResult.isMuted()
         }
     }
-
 }
