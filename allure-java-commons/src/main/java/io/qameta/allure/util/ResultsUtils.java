@@ -51,6 +51,7 @@ public final class ResultsUtils {
     public static final String THREAD_LABEL_NAME = "thread";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ResultsUtils.class);
+    @SuppressWarnings("PMD.UnusedPrivateField")
     private static final String ALLURE_DESCRIPTIONS_PACKAGE = "allureDescriptions/";
     private static final String MD_5 = "MD5";
 
@@ -239,30 +240,30 @@ public final class ResultsUtils {
         return stringWriter.toString();
     }
 
-//    public static void processDescription(final ClassLoader classLoader, final Method method,
-//                                          final ExecutableItem item) {
-//        if (method.isAnnotationPresent(Description.class)) {
-//            if (method.getAnnotation(Description.class).useJavaDoc()) {
-//                final String name = method.getName();
-//                final List<String> parameterTypes = Stream.of(method.getParameterTypes()).map(Class::getTypeName)
-//                        .collect(Collectors.toList());
-//                final String signatureHash = generateMethodSignatureHash(name, parameterTypes);
-//                final String description;
-//                try {
-//                    final URL resource = Optional.ofNullable(classLoader
-//                            .getResource(ALLURE_DESCRIPTIONS_PACKAGE + signatureHash))
-//                            .orElseThrow(IOException::new);
-//                    description = Resources.toString(resource, Charset.defaultCharset());
-//                    item.setDescriptionHtml(description);
-//                } catch (IOException e) {
-//                    LOGGER.warn("Unable to process description resource file for method {} {}", name, e.getMessage());
-//                }
-//            } else {
-//                final String description = method.getAnnotation(Description.class).value();
-//                item.setDescription(description);
-//            }
-//        }
-//    }
-
+    /*
+    public static void processDescription(final ClassLoader classLoader, final Method method,
+                                          final ExecutableItem item) {
+        if (method.isAnnotationPresent(Description.class)) {
+            if (method.getAnnotation(Description.class).useJavaDoc()) {
+                final String name = method.getName();
+                final List<String> parameterTypes = Stream.of(method.getParameterTypes()).map(Class::getTypeName)
+                        .collect(Collectors.toList());
+                final String signatureHash = generateMethodSignatureHash(name, parameterTypes);
+                final String description;
+                try {
+                    final URL resource = Optional.ofNullable(classLoader
+                            .getResource(ALLURE_DESCRIPTIONS_PACKAGE + signatureHash))
+                            .orElseThrow(IOException::new);
+                    description = Resources.toString(resource, Charset.defaultCharset());
+                    item.setDescriptionHtml(description);
+                } catch (IOException e) {
+                    LOGGER.warn("Unable to process description resource file for method {} {}", name, e.getMessage());
+                }
+            } else {
+                final String description = method.getAnnotation(Description.class).value();
+                item.setDescription(description);
+            }
+        }
+    }*/
 }
 

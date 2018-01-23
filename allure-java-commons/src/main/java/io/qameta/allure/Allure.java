@@ -12,7 +12,9 @@ import java.util.Objects;
  */
 public final class Allure {
 
+    @SuppressWarnings("PMD.UnusedPrivateField")
     private static final String TXT_EXTENSION = ".txt";
+    @SuppressWarnings("PMD.UnusedPrivateField")
     private static final String TEXT_PLAIN = "text/plain";
 
     private static Lifecycle lifecycle;
@@ -45,54 +47,55 @@ public final class Allure {
         getLifecycle().updateTest(executable -> executable.setDescriptionHtml(descriptionHtml));
     }
 
-//    public static void addAttachment(final String name, final String content) {
-//        getLifecycle().addAttachment(name, TEXT_PLAIN, TXT_EXTENSION, content.getBytes(StandardCharsets.UTF_8));
-//    }
-//
-//    public static void addAttachment(final String name, final String type, final String content) {
-//        getLifecycle().addAttachment(name, type, TXT_EXTENSION, content.getBytes(StandardCharsets.UTF_8));
-//    }
-//
-//    @SuppressWarnings("PMD.UseObjectForClearerAPI")
-//    public static void addAttachment(final String name, final String type,
-//                                     final String content, final String fileExtension) {
-//        getLifecycle().addAttachment(name, type, fileExtension, content.getBytes(StandardCharsets.UTF_8));
-//    }
-//
-//    public static void addAttachment(final String name, final InputStream content) {
-//        getLifecycle().addAttachment(name, null, null, content);
-//    }
-//
-//    @SuppressWarnings("PMD.UseObjectForClearerAPI")
-//    public static void addAttachment(final String name, final String type,
-//                                     final InputStream content, final String fileExtension) {
-//        getLifecycle().addAttachment(name, type, fileExtension, content);
-//    }
-//
-//    public static CompletableFuture<byte[]> addByteAttachmentAsync(
-//            final String name, final String type, final Supplier<byte[]> body) {
-//        return addByteAttachmentAsync(name, type, "", body);
-//    }
-//
-//    public static CompletableFuture<byte[]> addByteAttachmentAsync(
-//            final String name, final String type, final String fileExtension, final Supplier<byte[]> body) {
-//        final String source = getLifecycle().prepareAttachment(name, type, fileExtension);
-//        return supplyAsync(body).whenComplete((result, ex) ->
-//                getLifecycle().writeAttachment(source, new ByteArrayInputStream(result)));
-//    }
-//
-//    public static CompletableFuture<InputStream> addStreamAttachmentAsync(
-//            final String name, final String type, final Supplier<InputStream> body) {
-//        return addStreamAttachmentAsync(name, type, "", body);
-//    }
-//
-//    public static CompletableFuture<InputStream> addStreamAttachmentAsync(
-//            final String name, final String type, final String fileExtension, final Supplier<InputStream> body) {
-//        final String source = lifecycle.prepareAttachment(name, type, fileExtension);
-//        return supplyAsync(body).whenComplete((result, ex) -> lifecycle.writeAttachment(source, result));
-//    }
-
     public static void setLifecycle(final Lifecycle lifecycle) {
         Allure.lifecycle = lifecycle;
     }
+
+    /*
+    public static void addAttachment(final String name, final String content) {
+        getLifecycle().addAttachment(name, TEXT_PLAIN, TXT_EXTENSION, content.getBytes(StandardCharsets.UTF_8));
+    }
+
+    public static void addAttachment(final String name, final String type, final String content) {
+        getLifecycle().addAttachment(name, type, TXT_EXTENSION, content.getBytes(StandardCharsets.UTF_8));
+    }
+
+    @SuppressWarnings("PMD.UseObjectForClearerAPI")
+    public static void addAttachment(final String name, final String type,
+                                     final String content, final String fileExtension) {
+        getLifecycle().addAttachment(name, type, fileExtension, content.getBytes(StandardCharsets.UTF_8));
+    }
+
+    public static void addAttachment(final String name, final InputStream content) {
+        getLifecycle().addAttachment(name, null, null, content);
+    }
+
+    @SuppressWarnings("PMD.UseObjectForClearerAPI")
+    public static void addAttachment(final String name, final String type,
+                                     final InputStream content, final String fileExtension) {
+        getLifecycle().addAttachment(name, type, fileExtension, content);
+    }
+
+    public static CompletableFuture<byte[]> addByteAttachmentAsync(
+            final String name, final String type, final Supplier<byte[]> body) {
+        return addByteAttachmentAsync(name, type, "", body);
+    }
+
+    public static CompletableFuture<byte[]> addByteAttachmentAsync(
+            final String name, final String type, final String fileExtension, final Supplier<byte[]> body) {
+        final String source = getLifecycle().prepareAttachment(name, type, fileExtension);
+        return supplyAsync(body).whenComplete((result, ex) ->
+                getLifecycle().writeAttachment(source, new ByteArrayInputStream(result)));
+    }
+
+    public static CompletableFuture<InputStream> addStreamAttachmentAsync(
+            final String name, final String type, final Supplier<InputStream> body) {
+        return addStreamAttachmentAsync(name, type, "", body);
+    }
+
+    public static CompletableFuture<InputStream> addStreamAttachmentAsync(
+            final String name, final String type, final String fileExtension, final Supplier<InputStream> body) {
+        final String source = lifecycle.prepareAttachment(name, type, fileExtension);
+        return supplyAsync(body).whenComplete((result, ex) -> lifecycle.writeAttachment(source, result));
+    }*/
 }
