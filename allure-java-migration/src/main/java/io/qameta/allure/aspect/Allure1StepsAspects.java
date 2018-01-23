@@ -20,10 +20,10 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import static io.qameta.allure.util.ResultsUtils.getStatus;
 import static io.qameta.allure.aspect.Allure1Utils.getName;
 import static io.qameta.allure.aspect.Allure1Utils.getTitle;
 import static io.qameta.allure.util.ResultsUtils.getStackTraceAsString;
-import static io.qameta.allure.util.ResultsUtils.getStatus;
 
 /**
  * Aspects (AspectJ) for handling {@link Step}.
