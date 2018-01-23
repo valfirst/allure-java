@@ -1,11 +1,11 @@
 package io.qameta.allure.testdata
 
-import io.qameta.allure.AllureLifecycle
+import io.qameta.allure.Lifecycle
 import io.qameta.allure.aspect.AttachmentsAspects
 import io.qameta.allure.aspect.StepsAspects
 import io.qameta.allure.model.TestResult
 import io.qameta.allure.spock.AllureSpock
-import io.qameta.allure.test.AllureResultsWriterStub
+import io.qameta.allure.test.InMemoryResultsWriter
 import org.junit.runner.notification.RunNotifier
 import org.spockframework.runtime.JUnitDescriptionGenerator
 import org.spockframework.runtime.RunContext
@@ -26,8 +26,8 @@ class AllureSpockRunner {
     private final static NOTIFIER = new RunNotifier()
 
     static List<TestResult> run(Class clazz) {
-        AllureResultsWriterStub results = new AllureResultsWriterStub()
-        AllureLifecycle lifecycle = new AllureLifecycle(results)
+        InMemoryResultsWriter results = new InMemoryResultsWriter()
+        Lifecycle lifecycle = new Lifecycle(results)
 
         StepsAspects.setLifecycle(lifecycle)
         AttachmentsAspects.setLifecycle(lifecycle)
@@ -38,7 +38,6 @@ class AllureSpockRunner {
         new JUnitDescriptionGenerator(spec).describeSpec()
         RunContext.get().createSpecRunner(spec, NOTIFIER).run()
 
-        return results.getTestResults()
+        return results.getAllTestResults()
     }
-
 }

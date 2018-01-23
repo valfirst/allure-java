@@ -171,6 +171,11 @@ public final class ResultsUtils {
                 .map(t -> t instanceof AssertionError ? Status.FAILED : Status.BROKEN);
     }
 
+    public static Optional<String> getStatusMessage(final Throwable throwable) {
+        return Optional.ofNullable(throwable)
+                .map(t -> t.getMessage());
+    }
+
     public static Optional<String> firstNonEmpty(final String... items) {
         return Stream.of(items)
                 .filter(Objects::nonNull)
