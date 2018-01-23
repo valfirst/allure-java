@@ -1,7 +1,7 @@
 package io.qameta.allure.spring4;
 
 import io.qameta.allure.Allure;
-import io.qameta.allure.AllureLifecycle;
+import io.qameta.allure.Lifecycle;
 import io.qameta.allure.Epic;
 import io.qameta.allure.Feature;
 import io.qameta.allure.Issue;
@@ -12,7 +12,6 @@ import io.qameta.allure.TmsLink;
 import io.qameta.allure.model.Label;
 import io.qameta.allure.model.Link;
 import io.qameta.allure.model.Status;
-import io.qameta.allure.model.StatusDetails;
 import io.qameta.allure.model.TestResult;
 import io.qameta.allure.util.ResultsUtils;
 import org.springframework.test.context.TestContext;
@@ -26,13 +25,15 @@ import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static io.qameta.allure.util.ResultsUtils.getHostName;
+import static io.qameta.allure.util.ResultsUtils.getStackTraceAsString;
 import static io.qameta.allure.util.ResultsUtils.getStatus;
-import static io.qameta.allure.util.ResultsUtils.getStatusDetails;
+import static io.qameta.allure.util.ResultsUtils.getStatusMessage;
 import static io.qameta.allure.util.ResultsUtils.getThreadName;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -47,7 +48,7 @@ public class AllureSpring4 implements TestExecutionListener {
     private final ThreadLocal<String> testCases
             = InheritableThreadLocal.withInitial(() -> UUID.randomUUID().toString());
 
-    private final AllureLifecycle lifecycle;
+    private final Lifecycle lifecycle;
 
     public AllureSpring4() {
         this.lifecycle = Allure.getLifecycle();
@@ -71,44 +72,40 @@ public class AllureSpring4 implements TestExecutionListener {
         final String id = getHistoryId(testClass, testMethod);
 
         final TestResult result = new TestResult()
-                .withUuid(uuid)
-                .withHistoryId(id)
-                .withName(testMethod.getName())
-                .withFullName(String.format("%s.%s", testClass.getCanonicalName(), testMethod.getName()))
-                .withLinks(getLinks(testClass, testMethod))
-                .withLabels(
-                        new Label().withName("package").withValue(testClass.getCanonicalName()),
-                        new Label().withName("testClass").withValue(testClass.getCanonicalName()),
-                        new Label().withName("testMethod").withValue(testMethod.getName()),
-
-                        new Label().withName("suite").withValue(testClass.getName()),
-
-                        new Label().withName("host").withValue(getHostName()),
-                        new Label().withName("thread").withValue(getThreadName())
+                .setUuid(uuid)
+                .setHistoryId(id)
+                .setName(testMethod.getName())
+                .setFullName(String.format("%s.%s", testClass.getCanonicalName(), testMethod.getName()))
+                .setLinks(getLinks(testClass, testMethod))
+                .setLabels(
+                        Stream.of(
+                                new Label().setName("package").setValue(testClass.getCanonicalName()),
+                                new Label().setName("testClass").setValue(testClass.getCanonicalName()),
+                                new Label().setName("testMethod").setValue(testMethod.getName()),
+                                new Label().setName("suite").setValue(testClass.getName()),
+                                new Label().setName("host").setValue(getHostName()),
+                                new Label().setName("thread").setValue(getThreadName())
+                        ).collect(Collectors.toSet())
                 );
 
         result.getLabels().addAll(getLabels(testClass, testMethod));
         getDisplayName(testMethod).ifPresent(result::setName);
-        getLifecycle().scheduleTestCase(result);
-        getLifecycle().startTestCase(uuid);
+        getLifecycle().startTest(result);
     }
 
     @Override
     public void afterTestMethod(final TestContext testContext) throws Exception {
         final String uuid = testCases.get();
         testCases.remove();
-        getLifecycle().updateTestCase(uuid, testResult -> {
+        getLifecycle().updateTest(testResult -> {
             testResult.setStatus(getStatus(testContext.getTestException()).orElse(Status.PASSED));
-            if (Objects.isNull(testResult.getStatusDetails())) {
-                testResult.setStatusDetails(new StatusDetails());
+            if (!Objects.isNull(testContext.getTestException())) {
+                testResult.setStatusMessage(getStatusMessage(testContext.getTestException()).orElse(null));
+                testResult.setStatusTrace(getStackTraceAsString(testContext.getTestException()));
             }
-            getStatusDetails(testContext.getTestException()).ifPresent(statusDetails -> {
-                testResult.getStatusDetails().setMessage(statusDetails.getMessage());
-                testResult.getStatusDetails().setTrace(statusDetails.getTrace());
-            });
         });
-        getLifecycle().stopTestCase(uuid);
-        getLifecycle().writeTestCase(uuid);
+        getLifecycle().stopTest();
+        getLifecycle().writeTest(uuid);
     }
 
     @Override
@@ -116,7 +113,7 @@ public class AllureSpring4 implements TestExecutionListener {
         //do nothing
     }
 
-    public AllureLifecycle getLifecycle() {
+    public Lifecycle getLifecycle() {
         return lifecycle;
     }
 
@@ -125,12 +122,12 @@ public class AllureSpring4 implements TestExecutionListener {
                 .map(DisplayName::value);
     }
 
-    private List<Link> getLinks(final Class<?> testClass, final Method testMethod) {
+    private Set<Link> getLinks(final Class<?> testClass, final Method testMethod) {
         return Stream.of(
                 getAnnotations(testClass, testMethod, io.qameta.allure.Link.class).map(ResultsUtils::createLink),
                 getAnnotations(testClass, testMethod, Issue.class).map(ResultsUtils::createLink),
                 getAnnotations(testClass, testMethod, TmsLink.class).map(ResultsUtils::createLink)
-        ).reduce(Stream::concat).orElseGet(Stream::empty).collect(Collectors.toList());
+        ).reduce(Stream::concat).orElseGet(Stream::empty).collect(Collectors.toSet());
     }
 
     private List<Label> getLabels(final Class<?> testClass, final Method testMethod) {
