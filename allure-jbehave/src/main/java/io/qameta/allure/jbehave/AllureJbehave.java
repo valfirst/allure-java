@@ -22,6 +22,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static io.qameta.allure.util.ResultsUtils.createHostLabel;
@@ -67,16 +68,12 @@ public class AllureJbehave extends NullStoryReporter {
         final Story story = stories.get();
         final String uuid = scenarios.get();
         final String fullName = String.format("%s: %s", story.getName(), title);
-        final Set<Label> labels = new HashSet<>();
-        labels.add(createStoryLabel(story.getName()));
-        labels.add(createHostLabel());
-        labels.add(createThreadLabel());
         final TestResult result = new TestResult()
                 .setUuid(uuid)
                 .setName(title)
                 .setFullName(fullName)
                 .setStage(Stage.SCHEDULED)
-                .setLabels(labels)
+                .setLabels(getLabels(story))
                 .setDescription(story.getDescription().asString())
                 .setHistoryId(md5(fullName));
         getLifecycle().startTest(result);
@@ -126,6 +123,14 @@ public class AllureJbehave extends NullStoryReporter {
         );
         getLifecycle().stopStep();
         updateScenarioStatus(Status.FAILED);
+    }
+
+    private Set<Label> getLabels(final Story story) {
+        return Stream.of(
+                createStoryLabel(story.getName()),
+                createHostLabel(),
+                createThreadLabel()
+        ).collect(Collectors.toSet());
     }
 
     public Lifecycle getLifecycle() {

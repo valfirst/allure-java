@@ -1,6 +1,6 @@
 package io.qameta.allure.junit5;
 
-import io.qameta.allure.AllureLifecycle;
+import io.qameta.allure.Lifecycle;
 import io.qameta.allure.junit5.samples.DynamicTests;
 import io.qameta.allure.junit5.samples.TestWithClassLabels;
 import io.qameta.allure.junit5.samples.TestWithClassLinks;
@@ -9,7 +9,7 @@ import io.qameta.allure.junit5.samples.TestWithMethodLinks;
 import io.qameta.allure.model.Label;
 import io.qameta.allure.model.Link;
 import io.qameta.allure.model.TestResult;
-import io.qameta.allure.test.AllureResultsWriterStub;
+import io.qameta.allure.test.InMemoryResultsWriter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -27,9 +27,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class AnnotationsTest {
 
-    private AllureResultsWriterStub results = new AllureResultsWriterStub();
+    private InMemoryResultsWriter results = new InMemoryResultsWriter();
 
-    private AllureLifecycle lifecycle = new AllureLifecycle(results);
+    private Lifecycle lifecycle = new Lifecycle(results);
 
     @BeforeEach
     void setProperties() {
@@ -39,7 +39,7 @@ public class AnnotationsTest {
     @Test
     void shouldProcessMethodLabels() {
         runClasses(TestWithMethodLabels.class);
-        final List<TestResult> testResults = results.getTestResults();
+        final List<TestResult> testResults = results.getAllTestResults();
         assertThat(testResults)
                 .hasSize(1)
                 .flatExtracting(TestResult::getLabels)
@@ -52,11 +52,10 @@ public class AnnotationsTest {
                 );
     }
 
-
     @Test
     void shouldProcessClassLabels() {
         runClasses(TestWithClassLabels.class);
-        final List<TestResult> testResults = results.getTestResults();
+        final List<TestResult> testResults = results.getAllTestResults();
         assertThat(testResults)
                 .hasSize(1)
                 .flatExtracting(TestResult::getLabels)
@@ -72,7 +71,7 @@ public class AnnotationsTest {
     @Test
     void shouldProcessMethodLinks() {
         runClasses(TestWithMethodLinks.class);
-        final List<TestResult> testResults = results.getTestResults();
+        final List<TestResult> testResults = results.getAllTestResults();
         assertThat(testResults)
                 .hasSize(1)
                 .flatExtracting(TestResult::getLinks)
@@ -87,7 +86,7 @@ public class AnnotationsTest {
     @Test
     void shouldProcessClassLinks() {
         runClasses(TestWithClassLinks.class);
-        final List<TestResult> testResults = results.getTestResults();
+        final List<TestResult> testResults = results.getAllTestResults();
         assertThat(testResults)
                 .hasSize(1)
                 .flatExtracting(TestResult::getLinks)
@@ -103,7 +102,7 @@ public class AnnotationsTest {
     @Disabled("not implemented")
     void shouldProcessDynamicTestLabels() {
         runClasses(DynamicTests.class);
-        final List<TestResult> testResults = results.getTestResults();
+        final List<TestResult> testResults = results.getAllTestResults();
         assertThat(testResults)
                 .hasSize(3)
                 .flatExtracting(TestResult::getLabels)
@@ -133,5 +132,4 @@ public class AnnotationsTest {
         final Launcher launcher = LauncherFactory.create();
         launcher.execute(request, new AllureJunit5(lifecycle));
     }
-
 }
