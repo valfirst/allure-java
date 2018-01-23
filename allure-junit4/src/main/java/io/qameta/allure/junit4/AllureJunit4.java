@@ -1,7 +1,7 @@
 package io.qameta.allure.junit4;
 
 import io.qameta.allure.Allure;
-import io.qameta.allure.AllureLifecycle;
+import io.qameta.allure.Lifecycle;
 import io.qameta.allure.Epic;
 import io.qameta.allure.Feature;
 import io.qameta.allure.Owner;
@@ -10,7 +10,6 @@ import io.qameta.allure.Story;
 import io.qameta.allure.model.Label;
 import io.qameta.allure.model.Link;
 import io.qameta.allure.model.Status;
-import io.qameta.allure.model.StatusDetails;
 import io.qameta.allure.model.TestResult;
 import io.qameta.allure.util.ResultsUtils;
 import org.junit.Ignore;
@@ -30,14 +29,15 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static io.qameta.allure.util.ResultsUtils.getHostName;
+import static io.qameta.allure.util.ResultsUtils.getStackTraceAsString;
 import static io.qameta.allure.util.ResultsUtils.getStatus;
-import static io.qameta.allure.util.ResultsUtils.getStatusDetails;
 import static io.qameta.allure.util.ResultsUtils.getThreadName;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -57,17 +57,17 @@ public class AllureJunit4 extends RunListener {
         }
     };
 
-    private final AllureLifecycle lifecycle;
+    private final Lifecycle lifecycle;
 
     public AllureJunit4() {
         this(Allure.getLifecycle());
     }
 
-    public AllureJunit4(final AllureLifecycle lifecycle) {
+    public AllureJunit4(final Lifecycle lifecycle) {
         this.lifecycle = lifecycle;
     }
 
-    public AllureLifecycle getLifecycle() {
+    public Lifecycle getLifecycle() {
         return lifecycle;
     }
 
@@ -85,39 +85,37 @@ public class AllureJunit4 extends RunListener {
     public void testStarted(final Description description) throws Exception {
         final String uuid = testCases.get();
         final TestResult result = createTestResult(uuid, description);
-        getLifecycle().scheduleTestCase(result);
-        getLifecycle().startTestCase(uuid);
+        getLifecycle().startTest(result);
     }
 
     @Override
     public void testFinished(final Description description) throws Exception {
         final String uuid = testCases.get();
         testCases.remove();
-        getLifecycle().updateTestCase(uuid, testResult -> {
+        getLifecycle().updateTest(testResult -> {
             if (Objects.isNull(testResult.getStatus())) {
                 testResult.setStatus(Status.PASSED);
             }
         });
-
-        getLifecycle().stopTestCase(uuid);
-        getLifecycle().writeTestCase(uuid);
+        getLifecycle().stopTest();
+        getLifecycle().writeTest(uuid);
     }
 
     @Override
     public void testFailure(final Failure failure) throws Exception {
-        final String uuid = testCases.get();
-        getLifecycle().updateTestCase(uuid, testResult -> testResult
-                .withStatus(getStatus(failure.getException()).orElse(null))
-                .withStatusDetails(getStatusDetails(failure.getException()).orElse(null))
+        getLifecycle().updateTest(testResult -> testResult
+                .setStatus(getStatus(failure.getException()).orElse(null))
+                .setStatusMessage(failure.getMessage())
+                .setStatusTrace(getStackTraceAsString(failure.getException()))
         );
     }
 
     @Override
     public void testAssumptionFailure(final Failure failure) {
-        final String uuid = testCases.get();
-        getLifecycle().updateTestCase(uuid, testResult ->
-                testResult.withStatus(Status.SKIPPED)
-                        .withStatusDetails(getStatusDetails(failure.getException()).orElse(null))
+        getLifecycle().updateTest(testResult -> testResult
+                .setStatus(Status.SKIPPED)
+                .setStatusMessage(failure.getMessage())
+                .setStatusTrace(getStackTraceAsString(failure.getException()))
         );
     }
 
@@ -128,12 +126,12 @@ public class AllureJunit4 extends RunListener {
 
         final TestResult result = createTestResult(uuid, description);
         result.setStatus(Status.SKIPPED);
-        result.setStatusDetails(getIgnoredMessage(description));
+        result.setStatusMessage(getIgnoredMessage(description));
         result.setStart(System.currentTimeMillis());
 
-        getLifecycle().scheduleTestCase(result);
-        getLifecycle().stopTestCase(uuid);
-        getLifecycle().writeTestCase(uuid);
+        getLifecycle().startTest(result);
+        getLifecycle().stopTest();
+        getLifecycle().writeTest(uuid);
     }
 
     private Optional<String> getDisplayName(final Description result) {
@@ -146,7 +144,7 @@ public class AllureJunit4 extends RunListener {
                 .map(io.qameta.allure.Description::value);
     }
 
-    private List<Link> getLinks(final Description result) {
+    private Set<Link> getLinks(final Description result) {
         return Stream.of(
                 getAnnotationsOnClass(result, io.qameta.allure.Link.class).stream().map(ResultsUtils::createLink),
                 getAnnotationsOnMethod(result, io.qameta.allure.Link.class).stream().map(ResultsUtils::createLink),
@@ -154,7 +152,7 @@ public class AllureJunit4 extends RunListener {
                 getAnnotationsOnMethod(result, io.qameta.allure.Issue.class).stream().map(ResultsUtils::createLink),
                 getAnnotationsOnClass(result, io.qameta.allure.TmsLink.class).stream().map(ResultsUtils::createLink),
                 getAnnotationsOnMethod(result, io.qameta.allure.TmsLink.class).stream().map(ResultsUtils::createLink)
-        ).reduce(Stream::concat).orElseGet(Stream::empty).collect(Collectors.toList());
+        ).reduce(Stream::concat).orElseGet(Stream::empty).collect(Collectors.toSet());
     }
 
     private List<Label> getLabels(final Description result) {
@@ -185,7 +183,7 @@ public class AllureJunit4 extends RunListener {
     }
 
     private Label createLabel(final Tag tag) {
-        return new Label().withName("tag").withValue(tag.value());
+        return new Label().setName("tag").setValue(tag.value());
     }
 
     private <T extends Annotation> List<T> getAnnotationsOnMethod(final Description result, final Class<T> clazz) {
@@ -248,14 +246,15 @@ public class AllureJunit4 extends RunListener {
                 .orElse("");
     }
 
-    private StatusDetails getIgnoredMessage(final Description description) {
+    private String getIgnoredMessage(final Description description) {
         final Ignore ignore = description.getAnnotation(Ignore.class);
         final String message = Objects.nonNull(ignore) && !ignore.value().isEmpty()
                 ? ignore.value() : "Test ignored (without reason)!";
-        return new StatusDetails().withMessage(message);
+        return message;
     }
 
     private TestResult createTestResult(final String uuid, final Description description) {
+        final String testPackage = getPackage(description.getTestClass());
         final String className = description.getClassName();
         final String methodName = description.getMethodName();
         final String name = Objects.nonNull(methodName) ? methodName : className;
@@ -265,24 +264,30 @@ public class AllureJunit4 extends RunListener {
                 .map(DisplayName::value).orElse(className);
 
         final TestResult testResult = new TestResult()
-                .withUuid(uuid)
-                .withHistoryId(getHistoryId(description))
-                .withName(name)
-                .withFullName(fullName)
-                .withLinks(getLinks(description))
-                .withLabels(
-                        new Label().withName("package").withValue(getPackage(description.getTestClass())),
-                        new Label().withName("testClass").withValue(className),
-                        new Label().withName("testMethod").withValue(name),
-                        new Label().withName("suite").withValue(suite),
-                        new Label().withName("host").withValue(getHostName()),
-                        new Label().withName("thread").withValue(getThreadName())
-                );
+                .setUuid(uuid)
+                .setHistoryId(getHistoryId(description))
+                .setName(name)
+                .setFullName(fullName)
+                .setLinks(getLinks(description))
+                .setLabels(getLabels(testPackage, className, name, suite));
         testResult.getLabels().addAll(getLabels(description));
         getDisplayName(description).ifPresent(testResult::setName);
         getDescription(description).ifPresent(testResult::setDescription);
         return testResult;
     }
 
+    private Set<Label> getLabels(final String testPackage,
+                                 final String className,
+                                 final String name,
+                                 final String suite) {
+        return Stream.of(
+                new Label().setName("package").setValue(testPackage),
+                new Label().setName("testClass").setValue(className),
+                new Label().setName("testMethod").setValue(name),
+                new Label().setName("suite").setValue(suite),
+                new Label().setName("host").setValue(getHostName()),
+                new Label().setName("thread").setValue(getThreadName())
+        ).collect(Collectors.toSet());
+    }
 }
 

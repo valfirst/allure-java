@@ -1,6 +1,6 @@
 package io.qameta.allure.junit4;
 
-import io.qameta.allure.AllureLifecycle;
+import io.qameta.allure.Lifecycle;
 import io.qameta.allure.aspect.StepsAspects;
 import io.qameta.allure.junit4.samples.AssumptionFailedTest;
 import io.qameta.allure.junit4.samples.BrokenTest;
@@ -17,10 +17,9 @@ import io.qameta.allure.model.Label;
 import io.qameta.allure.model.Link;
 import io.qameta.allure.model.Stage;
 import io.qameta.allure.model.Status;
-import io.qameta.allure.model.StatusDetails;
 import io.qameta.allure.model.StepResult;
 import io.qameta.allure.model.TestResult;
-import io.qameta.allure.test.AllureResultsWriterStub;
+import io.qameta.allure.test.InMemoryResultsWriter;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.JUnitCore;
@@ -39,12 +38,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class FeatureCombinationsTest {
 
     private JUnitCore core;
-    private AllureResultsWriterStub results;
+    private InMemoryResultsWriter results;
 
     @Before
     public void prepare() {
-        results = new AllureResultsWriterStub();
-        AllureLifecycle lifecycle = new AllureLifecycle(results);
+        results = new InMemoryResultsWriter();
+        Lifecycle lifecycle = new Lifecycle(results);
         StepsAspects.setLifecycle(lifecycle);
         AllureJunit4 listener = new AllureJunit4(lifecycle);
         core = new JUnitCore();
@@ -55,7 +54,7 @@ public class FeatureCombinationsTest {
     @DisplayName("Should set full name")
     public void shouldSetTestFullName() throws Exception {
         core.run(Request.aClass(OneTest.class));
-        List<TestResult> testResults = results.getTestResults();
+        List<TestResult> testResults = results.getAllTestResults();
         assertThat(testResults)
                 .hasSize(1)
                 .extracting(TestResult::getFullName)
@@ -66,7 +65,7 @@ public class FeatureCombinationsTest {
     @DisplayName("Should set start time")
     public void shouldSetTestStart() throws Exception {
         core.run(Request.aClass(OneTest.class));
-        List<TestResult> testResults = results.getTestResults();
+        List<TestResult> testResults = results.getAllTestResults();
         assertThat(testResults)
                 .hasSize(1)
                 .extracting(TestResult::getStart)
@@ -77,7 +76,7 @@ public class FeatureCombinationsTest {
     @DisplayName("Should set stop time")
     public void shouldSetTestStop() throws Exception {
         core.run(Request.aClass(OneTest.class));
-        List<TestResult> testResults = results.getTestResults();
+        List<TestResult> testResults = results.getAllTestResults();
         assertThat(testResults)
                 .hasSize(1)
                 .extracting(TestResult::getStop)
@@ -88,7 +87,7 @@ public class FeatureCombinationsTest {
     @DisplayName("Should set finished stage")
     public void shouldSetStageFinished() throws Exception {
         core.run(Request.aClass(OneTest.class));
-        List<TestResult> testResults = results.getTestResults();
+        List<TestResult> testResults = results.getAllTestResults();
         assertThat(testResults)
                 .hasSize(1)
                 .extracting(TestResult::getStage)
@@ -99,7 +98,7 @@ public class FeatureCombinationsTest {
     @DisplayName("Failed test")
     public void shouldProcessFailedTest() throws Exception {
         core.run(Request.aClass(FailedTest.class));
-        List<TestResult> testResults = results.getTestResults();
+        List<TestResult> testResults = results.getAllTestResults();
         assertThat(testResults)
                 .hasSize(1)
                 .extracting(TestResult::getStatus)
@@ -110,7 +109,7 @@ public class FeatureCombinationsTest {
     @DisplayName("Broken test")
     public void shouldProcessBrokenTest() throws Exception {
         core.run(Request.aClass(BrokenTest.class));
-        List<TestResult> testResults = results.getTestResults();
+        List<TestResult> testResults = results.getAllTestResults();
         assertThat(testResults)
                 .hasSize(1)
                 .extracting(TestResult::getStatus)
@@ -138,7 +137,7 @@ public class FeatureCombinationsTest {
     @DisplayName("Skipped test")
     public void shouldProcessSkippedTest() throws Exception {
         core.run(Request.aClass(AssumptionFailedTest.class));
-        List<TestResult> testResults = results.getTestResults();
+        List<TestResult> testResults = results.getAllTestResults();
         assertThat(testResults)
                 .hasSize(1)
                 .extracting(TestResult::getStatus)
@@ -149,7 +148,7 @@ public class FeatureCombinationsTest {
     @DisplayName("Ignored tests")
     public void shouldProcessIgnoredTest() throws Exception {
         core.run(Request.aClass(IgnoredTests.class));
-        List<TestResult> testResults = results.getTestResults();
+        List<TestResult> testResults = results.getAllTestResults();
         assertThat(testResults)
                 .hasSize(2)
                 .flatExtracting(TestResult::getStatus)
@@ -160,11 +159,10 @@ public class FeatureCombinationsTest {
     @DisplayName("Ignored tests messages")
     public void shouldProcessIgnoredTestDescription() throws Exception {
         core.run(Request.aClass(IgnoredTests.class));
-        List<TestResult> testResults = results.getTestResults();
+        List<TestResult> testResults = results.getAllTestResults();
         assertThat(testResults)
                 .hasSize(2)
-                .extracting(TestResult::getStatusDetails)
-                .extracting(StatusDetails::getMessage)
+                .extracting(TestResult::getStatusMessage)
                 .containsExactlyInAnyOrder("Test ignored (without reason)!", "Ignored for some reason");
     }
 
@@ -172,7 +170,7 @@ public class FeatureCombinationsTest {
     @DisplayName("Test result for ignored class gets named by the class name")
     public void shouldSetNameForIgnoredClass() {
         core.run(Request.aClass(IgnoredClassTest.class));
-        List<TestResult> testResults = results.getTestResults();
+        List<TestResult> testResults = results.getAllTestResults();
         assertThat(testResults)
                 .extracting(TestResult::getName)
                 .containsExactly("io.qameta.allure.junit4.samples.IgnoredClassTest");
@@ -182,7 +180,7 @@ public class FeatureCombinationsTest {
     @DisplayName("Test with steps")
     public void shouldAddStepsToTest() throws Exception {
         core.run(Request.aClass(TestWithSteps.class));
-        List<TestResult> testResults = results.getTestResults();
+        List<TestResult> testResults = results.getAllTestResults();
         assertThat(testResults)
                 .hasSize(1)
                 .flatExtracting(TestResult::getSteps)
@@ -208,7 +206,7 @@ public class FeatureCombinationsTest {
     @DisplayName("Annotations on method")
     public void shouldProcessMethodAnnotations() throws Exception {
         core.run(Request.aClass(TestWithAnnotations.class));
-        List<TestResult> testResults = results.getTestResults();
+        List<TestResult> testResults = results.getAllTestResults();
         assertThat(testResults)
                 .hasSize(1)
                 .flatExtracting(TestResult::getLabels)
@@ -225,7 +223,7 @@ public class FeatureCombinationsTest {
     @DisplayName("Should set display name")
     public void shouldSetDisplayName() throws Exception {
         core.run(Request.aClass(OneTest.class));
-        List<TestResult> testResults = results.getTestResults();
+        List<TestResult> testResults = results.getAllTestResults();
         assertThat(testResults)
                 .hasSize(1)
                 .extracting(TestResult::getName)
@@ -236,7 +234,7 @@ public class FeatureCombinationsTest {
     @DisplayName("Should set suite name")
     public void shouldSetSuiteName() throws Exception {
         core.run(Request.aClass(OneTest.class));
-        List<TestResult> testResults = results.getTestResults();
+        List<TestResult> testResults = results.getAllTestResults();
         assertThat(testResults)
                 .hasSize(1)
                 .flatExtracting(TestResult::getLabels)
@@ -249,7 +247,7 @@ public class FeatureCombinationsTest {
     @DisplayName("Should set description")
     public void shouldSetDescription() throws Exception {
         core.run(Request.aClass(OneTest.class));
-        List<TestResult> testResults = results.getTestResults();
+        List<TestResult> testResults = results.getAllTestResults();
         assertThat(testResults)
                 .hasSize(1)
                 .extracting(TestResult::getDescription)
@@ -260,7 +258,7 @@ public class FeatureCombinationsTest {
     @DisplayName("Should set links")
     public void shouldSetLinks() throws Exception {
         core.run(Request.aClass(FailedTest.class));
-        List<TestResult> testResults = results.getTestResults();
+        List<TestResult> testResults = results.getAllTestResults();
         assertThat(testResults)
                 .hasSize(1)
                 .flatExtracting(TestResult::getLinks)
@@ -272,7 +270,7 @@ public class FeatureCombinationsTest {
     @DisplayName("Should set tags")
     public void shouldSetTags() throws Exception {
         core.run(Request.aClass(TaggedTests.class));
-        List<TestResult> testResults = results.getTestResults();
+        List<TestResult> testResults = results.getAllTestResults();
 
         assertThat(testResults)
                 .hasSize(1)
