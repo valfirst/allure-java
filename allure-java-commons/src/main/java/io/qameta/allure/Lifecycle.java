@@ -118,7 +118,8 @@ public class Lifecycle {
     }
 
     public synchronized AttachmentContentWriter addAttachment(final String name,
-                                                              final String contentType, final String extension) {
+                                                              final String contentType,
+                                                              final String extension) {
         final Optional<Executable> executable = currentStepOrTest();
         if (executable.isPresent()) {
             final String uuid = UUID.randomUUID().toString();
