@@ -1,9 +1,9 @@
 package io.qameta.allure.assertj;
 
-import io.qameta.allure.AllureLifecycle;
+import io.qameta.allure.Lifecycle;
 import io.qameta.allure.model.StepResult;
 import io.qameta.allure.model.TestResult;
-import io.qameta.allure.test.AllureResultsWriterStub;
+import io.qameta.allure.test.InMemoryResultsWriter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -14,35 +14,33 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author charlie (Dmitry Baev).
  */
-class AllureAspectJTest {
+class AllureAssertJTest {
 
-    private AllureResultsWriterStub results;
+    private InMemoryResultsWriter results;
 
-    private AllureLifecycle lifecycle;
+    private Lifecycle lifecycle;
 
     @BeforeEach
     public void initLifecycle() {
-        results = new AllureResultsWriterStub();
-        lifecycle = new AllureLifecycle(results);
-        AllureAspectJ.setLifecycle(lifecycle);
+        results = new InMemoryResultsWriter();
+        lifecycle = new Lifecycle(results);
+        AllureAssertJ.setLifecycle(lifecycle);
     }
 
     @Test
     public void shouldCreateStepsForAsserts() throws Exception {
         final String uuid = UUID.randomUUID().toString();
-        final TestResult result = new TestResult().withUuid(uuid);
+        final TestResult result = new TestResult().setUuid(uuid);
 
-        lifecycle.scheduleTestCase(result);
-        lifecycle.startTestCase(uuid);
-
+        lifecycle.startTest(result);
 
         assertThat("Data")
                 .hasSize(4);
 
-        lifecycle.stopTestCase(uuid);
-        lifecycle.writeTestCase(uuid);
+        lifecycle.stopTest();
+        lifecycle.writeTest(uuid);
 
-        assertThat(results.getTestResults())
+        assertThat(results.getAllTestResults())
                 .flatExtracting(TestResult::getSteps)
                 .extracting(StepResult::getName)
                 .containsExactly("assertThat 'Data'", "hasSize '4'");

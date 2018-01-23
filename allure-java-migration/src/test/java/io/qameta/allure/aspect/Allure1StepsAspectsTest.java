@@ -1,9 +1,9 @@
 package io.qameta.allure.aspect;
 
-import io.qameta.allure.AllureLifecycle;
+import io.qameta.allure.Lifecycle;
 import io.qameta.allure.model.StepResult;
 import io.qameta.allure.model.TestResult;
-import io.qameta.allure.test.AllureResultsWriterStub;
+import io.qameta.allure.test.InMemoryResultsWriter;
 import org.junit.Before;
 import org.junit.Test;
 import ru.yandex.qatools.allure.annotations.Step;
@@ -15,36 +15,35 @@ import static org.assertj.core.api.Assertions.tuple;
 
 public class Allure1StepsAspectsTest {
 
-    private AllureResultsWriterStub results;
+    private InMemoryResultsWriter results;
 
-    private AllureLifecycle lifecycle;
+    private Lifecycle lifecycle;
 
     @Before
     public void initLifecycle() {
-        results = new AllureResultsWriterStub();
-        lifecycle = new AllureLifecycle(results);
+        results = new InMemoryResultsWriter();
+        lifecycle = new Lifecycle(results);
         Allure1StepsAspects.setLifecycle(lifecycle);
     }
 
     @Test
     public void shouldSetupStepTitleFromAnnotation() {
         final String uuid = UUID.randomUUID().toString();
-        final TestResult result = new TestResult().withUuid(uuid);
+        final TestResult result = new TestResult().setUuid(uuid);
 
-        lifecycle.scheduleTestCase(result);
-        lifecycle.startTestCase(uuid);
+        lifecycle.startTest(result);
 
         stepWithTitleAndWithParameter("parameter value");
 
-        lifecycle.stopTestCase(uuid);
-        lifecycle.writeTestCase(uuid);
+        lifecycle.stopTest();
+        lifecycle.writeTest(uuid);
 
-        assertThat(results.getTestResults())
+        assertThat(results.getAllTestResults())
                 .flatExtracting(TestResult::getSteps)
                 .extracting(StepResult::getName)
                 .containsExactly("step with title and parameter [parameter value]");
 
-        assertThat(results.getTestResults())
+        assertThat(results.getAllTestResults())
                 .flatExtracting(TestResult::getSteps)
                 .flatExtracting(StepResult::getParameters)
                 .extracting("name", "value")
@@ -54,22 +53,21 @@ public class Allure1StepsAspectsTest {
     @Test
     public void shouldSetupStepTitleFromMethodSignature() {
         final String uuid = UUID.randomUUID().toString();
-        final TestResult result = new TestResult().withUuid(uuid);
+        final TestResult result = new TestResult().setUuid(uuid);
 
-        lifecycle.scheduleTestCase(result);
-        lifecycle.startTestCase(uuid);
+        lifecycle.startTest(result);
 
         stepWithoutTitleAndWithParameter("parameter value");
 
-        lifecycle.stopTestCase(uuid);
-        lifecycle.writeTestCase(uuid);
+        lifecycle.stopTest();
+        lifecycle.writeTest(uuid);
 
-        assertThat(results.getTestResults())
+        assertThat(results.getAllTestResults())
                 .flatExtracting(TestResult::getSteps)
                 .extracting(StepResult::getName)
                 .containsExactly("stepWithoutTitleAndWithParameter[parameter value]");
 
-        assertThat(results.getTestResults())
+        assertThat(results.getAllTestResults())
                 .flatExtracting(TestResult::getSteps)
                 .flatExtracting(StepResult::getParameters)
                 .extracting("name", "value")

@@ -24,5 +24,4 @@ public enum SeverityLevel {
     public String value() {
         return value;
     }
-
 }

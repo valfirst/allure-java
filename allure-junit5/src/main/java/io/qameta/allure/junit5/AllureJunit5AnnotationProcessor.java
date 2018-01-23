@@ -1,7 +1,7 @@
 package io.qameta.allure.junit5;
 
 import io.qameta.allure.Allure;
-import io.qameta.allure.AllureLifecycle;
+import io.qameta.allure.Lifecycle;
 import io.qameta.allure.Epic;
 import io.qameta.allure.Feature;
 import io.qameta.allure.Owner;
@@ -29,20 +29,18 @@ import java.util.stream.Stream;
  */
 public class AllureJunit5AnnotationProcessor implements BeforeTestExecutionCallback {
 
-    private static AllureLifecycle lifecycle;
+    private static Lifecycle lifecycle;
 
     @Override
     public void beforeTestExecution(final ExtensionContext context) throws Exception {
-        getLifecycle().getCurrentTestCase().ifPresent(uuid -> {
-            getLifecycle().updateTestCase(uuid, testResult -> {
-                context.getTestClass().ifPresent(testClass -> {
-                    testResult.getLabels().addAll(getLabels(testClass));
-                    testResult.getLinks().addAll(getLinks(testClass));
-                });
-                context.getTestMethod().ifPresent(testMethod -> {
-                    testResult.getLabels().addAll(getLabels(testMethod));
-                    testResult.getLinks().addAll(getLinks(testMethod));
-                });
+        getLifecycle().updateTest(testResult -> {
+            context.getTestClass().ifPresent(testClass -> {
+                testResult.getLabels().addAll(getLabels(testClass));
+                testResult.getLinks().addAll(getLinks(testClass));
+            });
+            context.getTestMethod().ifPresent(testMethod -> {
+                testResult.getLabels().addAll(getLabels(testMethod));
+                testResult.getLinks().addAll(getLinks(testMethod));
             });
         });
     }
@@ -95,21 +93,19 @@ public class AllureJunit5AnnotationProcessor implements BeforeTestExecutionCallb
         return Collections.emptyList();
     }
 
-
     /**
      * For tests only.
      *
      * @param allure allure lifecycle to set.
      */
-    public static void setLifecycle(final AllureLifecycle allure) {
+    public static void setLifecycle(final Lifecycle allure) {
         lifecycle = allure;
     }
 
-    public static AllureLifecycle getLifecycle() {
+    public static Lifecycle getLifecycle() {
         if (Objects.isNull(lifecycle)) {
             lifecycle = Allure.getLifecycle();
         }
         return lifecycle;
     }
-
 }

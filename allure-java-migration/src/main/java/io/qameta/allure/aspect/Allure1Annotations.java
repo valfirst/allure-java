@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -54,10 +55,10 @@ final class Allure1Annotations {
         final Class<?> type = getType();
         if (type.isAnnotationPresent(Title.class)) {
             final Title title = type.getAnnotation(Title.class);
-            final List<Label> labels = result.getLabels().stream()
+            final Set<Label> labels = result.getLabels().stream()
                     .filter(label -> !label.getName().equals(SUITE_LABEL))
-                    .collect(Collectors.toList());
-            labels.add(new Label().withName(SUITE_LABEL).withValue(title.value()));
+                    .collect(Collectors.toSet());
+            labels.add(new Label().setName(SUITE_LABEL).setValue(title.value()));
             result.setLabels(labels);
         }
     }
@@ -88,7 +89,7 @@ final class Allure1Annotations {
                 .map(Parameter::getName)
                 .filter(parameters::containsKey)
                 .forEach(parameters::remove);
-        parameters.forEach((n, v) -> result.getParameters().add(new Parameter().withName(n).withValue(v)));
+        parameters.forEach((n, v) -> result.getParameters().add(new Parameter().setName(n).setValue(v)));
     }
 
     private Map<String, String> getParameters() {

@@ -1,12 +1,12 @@
 package io.qameta.allure.jbehave;
 
-import io.qameta.allure.AllureLifecycle;
+import io.qameta.allure.Lifecycle;
 import io.qameta.allure.aspect.AttachmentsAspects;
 import io.qameta.allure.aspect.StepsAspects;
 import io.qameta.allure.jbehave.steps.StackSteps;
 import io.qameta.allure.model.Status;
 import io.qameta.allure.model.TestResult;
-import io.qameta.allure.test.AllureResultsWriterStub;
+import io.qameta.allure.test.InMemoryResultsWriter;
 import org.assertj.core.groups.Tuple;
 import org.jbehave.core.configuration.MostUsefulConfiguration;
 import org.jbehave.core.embedder.Embedder;
@@ -30,7 +30,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class AllureJbehaveTest {
 
-    private AllureResultsWriterStub results;
+    private InMemoryResultsWriter results;
     private Embedder embedder = new Embedder();
 
     @Rule
@@ -38,8 +38,8 @@ public class AllureJbehaveTest {
 
     @Before
     public void setUp() throws Exception {
-        results = new AllureResultsWriterStub();
-        final AllureLifecycle lifecycle = new AllureLifecycle(results);
+        results = new InMemoryResultsWriter();
+        final Lifecycle lifecycle = new Lifecycle(results);
         StepsAspects.setLifecycle(lifecycle);
         AttachmentsAspects.setLifecycle(lifecycle);
         embedder.useEmbedderControls(new EmbedderControls()
@@ -60,7 +60,7 @@ public class AllureJbehaveTest {
     @Test
     public void shouldAddResults() throws Exception {
         embedder.runStoriesAsPaths(singletonList("stories/stack_story.story"));
-        final List<TestResult> testResults = results.getTestResults();
+        final List<TestResult> testResults = results.getAllTestResults();
 
         assertThat(testResults)
                 .hasSize(2)

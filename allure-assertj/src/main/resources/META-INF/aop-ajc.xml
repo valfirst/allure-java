@@ -1,5 +1,5 @@
 <aspectj>
     <aspects>
-        <aspect name="io.qameta.allure.assertj.AllureAspectJ"/>
+        <aspect name="io.qameta.allure.assertj.AllureAssertJ"/>
     </aspects>
 </aspectj>

@@ -1,7 +1,7 @@
 package io.qameta.allure.aspect;
 
 import io.qameta.allure.Allure;
-import io.qameta.allure.AllureLifecycle;
+import io.qameta.allure.Lifecycle;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.Aspect;
@@ -18,7 +18,7 @@ import java.util.Objects;
 @Aspect
 public class Allure1AttachAspects {
 
-    private static AllureLifecycle lifecycle;
+    private static Lifecycle lifecycle;
 
     /**
      * Pointcut for things annotated with {@link ru.yandex.qatools.allure.annotations.Attachment}.
@@ -54,22 +54,20 @@ public class Allure1AttachAspects {
 
         final byte[] bytes = (result instanceof byte[])
                 ? (byte[]) result : Objects.toString(result).getBytes(StandardCharsets.UTF_8);
-        getLifecycle().addAttachment(title, attachment.type(), "", bytes);
+        getLifecycle().addAttachment(title, attachment.type(), "").withContent(bytes);
     }
 
     /**
      * For tests only.
      */
-    public static void setLifecycle(final AllureLifecycle lifecycle) {
+    public static void setLifecycle(final Lifecycle lifecycle) {
         Allure1AttachAspects.lifecycle = lifecycle;
     }
 
-    public static AllureLifecycle getLifecycle() {
+    public static Lifecycle getLifecycle() {
         if (Objects.isNull(lifecycle)) {
             lifecycle = Allure.getLifecycle();
         }
         return lifecycle;
     }
-
-
 }

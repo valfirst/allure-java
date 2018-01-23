@@ -1,7 +1,8 @@
 package io.qameta.allure.jbehave;
 
 import io.qameta.allure.Allure;
-import io.qameta.allure.AllureLifecycle;
+import io.qameta.allure.Lifecycle;
+import io.qameta.allure.model.Label;
 import io.qameta.allure.model.Stage;
 import io.qameta.allure.model.Status;
 import io.qameta.allure.model.StepResult;
@@ -14,9 +15,11 @@ import javax.xml.bind.DatatypeConverter;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
@@ -32,7 +35,7 @@ public class AllureJbehave extends NullStoryReporter {
 
     private static final String MD_5 = "md5";
 
-    private final AllureLifecycle lifecycle;
+    private final Lifecycle lifecycle;
 
     private final ThreadLocal<Story> stories = new InheritableThreadLocal<>();
 
@@ -45,7 +48,7 @@ public class AllureJbehave extends NullStoryReporter {
         this(Allure.getLifecycle());
     }
 
-    public AllureJbehave(final AllureLifecycle lifecycle) {
+    public AllureJbehave(final Lifecycle lifecycle) {
         this.lifecycle = lifecycle;
     }
 
@@ -64,16 +67,19 @@ public class AllureJbehave extends NullStoryReporter {
         final Story story = stories.get();
         final String uuid = scenarios.get();
         final String fullName = String.format("%s: %s", story.getName(), title);
+        final Set<Label> labels = new HashSet<>();
+        labels.add(createStoryLabel(story.getName()));
+        labels.add(createHostLabel());
+        labels.add(createThreadLabel());
         final TestResult result = new TestResult()
-                .withUuid(uuid)
-                .withName(title)
-                .withFullName(fullName)
-                .withStage(Stage.SCHEDULED)
-                .withLabels(createStoryLabel(story.getName()), createHostLabel(), createThreadLabel())
-                .withDescription(story.getDescription().asString())
-                .withHistoryId(md5(fullName));
-        getLifecycle().scheduleTestCase(result);
-        getLifecycle().startTestCase(result.getUuid());
+                .setUuid(uuid)
+                .setName(title)
+                .setFullName(fullName)
+                .setStage(Stage.SCHEDULED)
+                .setLabels(labels)
+                .setDescription(story.getDescription().asString())
+                .setHistoryId(md5(fullName));
+        getLifecycle().startTest(result);
     }
 
     @Override
@@ -81,35 +87,34 @@ public class AllureJbehave extends NullStoryReporter {
         final String uuid = scenarios.get();
         final Status status = scenarioStatusStorage.getOrDefault(uuid, Status.PASSED);
 
-        getLifecycle().updateTestCase(uuid, testResult -> testResult.withStatus(status));
-        getLifecycle().stopTestCase(uuid);
-        getLifecycle().writeTestCase(uuid);
+        getLifecycle().updateTest(testResult -> testResult.setStatus(status));
+        getLifecycle().stopTest();
+        getLifecycle().writeTest(uuid);
         scenarios.remove();
     }
 
     @Override
     public void beforeStep(final String step) {
-        final String stepUuid = UUID.randomUUID().toString();
-        getLifecycle().startStep(stepUuid, new StepResult().withName(step));
+        getLifecycle().startStep(new StepResult().setName(step));
     }
 
     @Override
     public void successful(final String step) {
-        getLifecycle().updateStep(result -> result.withStatus(Status.PASSED));
+        getLifecycle().updateStep(result -> result.setStatus(Status.PASSED));
         getLifecycle().stopStep();
         updateScenarioStatus(Status.PASSED);
     }
 
     @Override
     public void ignorable(final String step) {
-        getLifecycle().updateStep(result -> result.withStatus(Status.SKIPPED));
+        getLifecycle().updateStep(result -> result.setStatus(Status.SKIPPED));
         getLifecycle().stopStep();
         updateScenarioStatus(Status.SKIPPED);
     }
 
     @Override
     public void pending(final String step) {
-        getLifecycle().updateStep(result -> result.withStatus(Status.SKIPPED));
+        getLifecycle().updateStep(result -> result.setStatus(Status.SKIPPED));
         getLifecycle().stopStep();
         updateScenarioStatus(Status.SKIPPED);
     }
@@ -117,13 +122,13 @@ public class AllureJbehave extends NullStoryReporter {
     @Override
     public void failed(final String step, final Throwable cause) {
         ResultsUtils.getStatus(cause).ifPresent(status ->
-                getLifecycle().updateStep(result -> result.withStatus(status))
+                getLifecycle().updateStep(result -> result.setStatus(status))
         );
         getLifecycle().stopStep();
         updateScenarioStatus(Status.FAILED);
     }
 
-    public AllureLifecycle getLifecycle() {
+    public Lifecycle getLifecycle() {
         return lifecycle;
     }
 

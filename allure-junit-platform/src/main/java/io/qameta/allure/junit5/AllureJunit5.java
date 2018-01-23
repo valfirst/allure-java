@@ -1,7 +1,7 @@
 package io.qameta.allure.junit5;
 
 import io.qameta.allure.Allure;
-import io.qameta.allure.AllureLifecycle;
+import io.qameta.allure.Lifecycle;
 import io.qameta.allure.Description;
 import io.qameta.allure.model.Label;
 import io.qameta.allure.model.Stage;
@@ -19,8 +19,8 @@ import org.slf4j.LoggerFactory;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -28,6 +28,8 @@ import static io.qameta.allure.model.Status.FAILED;
 import static io.qameta.allure.model.Status.PASSED;
 import static io.qameta.allure.model.Status.SKIPPED;
 import static java.nio.charset.StandardCharsets.UTF_8;
+
+import static io.qameta.allure.util.ResultsUtils.getStackTraceAsString;
 
 /**
  * @author ehborisov
@@ -42,9 +44,9 @@ public class AllureJunit5 implements TestExecutionListener {
     private final ThreadLocal<String> tests
             = InheritableThreadLocal.withInitial(() -> UUID.randomUUID().toString());
 
-    private final AllureLifecycle lifecycle;
+    private final Lifecycle lifecycle;
 
-    public AllureJunit5(final AllureLifecycle lifecycle) {
+    public AllureJunit5(final Lifecycle lifecycle) {
         this.lifecycle = lifecycle;
     }
 
@@ -52,7 +54,7 @@ public class AllureJunit5 implements TestExecutionListener {
         this.lifecycle = Allure.getLifecycle();
     }
 
-    public AllureLifecycle getLifecycle() {
+    public Lifecycle getLifecycle() {
         return lifecycle;
     }
 
@@ -64,20 +66,18 @@ public class AllureJunit5 implements TestExecutionListener {
                     .map(MethodSource.class::cast);
             final String uuid = tests.get();
             final TestResult result = new TestResult()
-                    .withUuid(uuid)
-                    .withName(testIdentifier.getDisplayName())
-                    .withLabels(getTags(testIdentifier))
-                    .withHistoryId(getHistoryId(testIdentifier))
-                    .withStage(Stage.RUNNING);
+                    .setUuid(uuid)
+                    .setName(testIdentifier.getDisplayName())
+                    .setLabels(getTags(testIdentifier))
+                    .setHistoryId(getHistoryId(testIdentifier))
+                    .setStage(Stage.RUNNING);
 
             methodSource.ifPresent(source -> {
                 result.setDescription(getDescription(source));
-                result.getLabels().add(new Label().withName("suite").withValue(getSuite(source)));
-                result.getLabels().add(new Label().withName("package").withValue(source.getClassName()));
+                result.getLabels().add(new Label().setName("suite").setValue(getSuite(source)));
+                result.getLabels().add(new Label().setName("package").setValue(source.getClassName()));
             });
-
-            getLifecycle().scheduleTestCase(result);
-            getLifecycle().startTestCase(uuid);
+            getLifecycle().startTest(result);
         }
     }
 
@@ -86,13 +86,14 @@ public class AllureJunit5 implements TestExecutionListener {
         if (testIdentifier.isTest()) {
             final String uuid = tests.get();
             tests.remove();
-            getLifecycle().updateTestCase(uuid, result -> {
+            getLifecycle().updateTest(result -> {
                 result.setStage(Stage.FINISHED);
                 switch (testExecutionResult.getStatus()) {
                     case FAILED:
                         testExecutionResult.getThrowable().ifPresent(throwable -> {
                             result.setStatus(getStatus(throwable));
-                            result.setStatusDetails(ResultsUtils.getStatusDetails(throwable).orElse(null));
+                            result.setStatusMessage(throwable.getMessage());
+                            result.setStatusTrace(getStackTraceAsString(throwable));
                         });
                         break;
                     case SUCCESSFUL:
@@ -101,13 +102,13 @@ public class AllureJunit5 implements TestExecutionListener {
                     default:
                         result.setStatus(SKIPPED);
                         testExecutionResult.getThrowable().ifPresent(throwable ->
-                                result.setStatusDetails(ResultsUtils.getStatusDetails(throwable).orElse(null))
+                                result.setStatusTrace(getStackTraceAsString(throwable))
                         );
                         break;
                 }
             });
-            getLifecycle().stopTestCase(uuid);
-            getLifecycle().writeTestCase(uuid);
+            getLifecycle().stopTest();
+            getLifecycle().writeTest(uuid);
         }
     }
 
@@ -115,10 +116,10 @@ public class AllureJunit5 implements TestExecutionListener {
         return ResultsUtils.getStatus(throwable).orElse(FAILED);
     }
 
-    private List<Label> getTags(final TestIdentifier testIdentifier) {
+    private Set<Label> getTags(final TestIdentifier testIdentifier) {
         return testIdentifier.getTags().stream()
-                .map(tag -> new Label().withName(TAG).withValue(tag.getName()))
-                .collect(Collectors.toList());
+                .map(tag -> new Label().setName(TAG).setValue(tag.getName()))
+                .collect(Collectors.toSet());
     }
 
     protected String getHistoryId(final TestIdentifier testIdentifier) {

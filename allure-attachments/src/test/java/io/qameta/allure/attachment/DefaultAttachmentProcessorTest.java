@@ -1,10 +1,8 @@
 package io.qameta.allure.attachment;
 
-import io.qameta.allure.AllureLifecycle;
+import io.qameta.allure.Lifecycle;
 import io.qameta.allure.attachment.http.HttpRequestAttachment;
 import org.junit.Test;
-
-import java.nio.charset.StandardCharsets;
 
 import static io.qameta.allure.attachment.testdata.TestData.randomAttachmentContent;
 import static io.qameta.allure.attachment.testdata.TestData.randomHttpRequestAttachment;
@@ -23,7 +21,7 @@ public class DefaultAttachmentProcessorTest {
     @Test
     public void shouldProcessAttachments() throws Exception {
         final HttpRequestAttachment attachment = randomHttpRequestAttachment();
-        final AllureLifecycle lifecycle = mock(AllureLifecycle.class);
+        final Lifecycle lifecycle = mock(Lifecycle.class);
         final AttachmentRenderer<AttachmentData> renderer = mock(AttachmentRenderer.class);
         final AttachmentContent content = randomAttachmentContent();
         doReturn(content)
@@ -38,8 +36,7 @@ public class DefaultAttachmentProcessorTest {
                 .addAttachment(
                         eq(attachment.getName()),
                         eq(content.getContentType()),
-                        eq(content.getFileExtension()),
-                        eq(content.getContent().getBytes(StandardCharsets.UTF_8))
+                        eq(content.getFileExtension())
                 );
     }
 }
