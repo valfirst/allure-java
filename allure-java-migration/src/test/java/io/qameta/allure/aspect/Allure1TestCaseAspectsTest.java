@@ -1,10 +1,10 @@
 package io.qameta.allure.aspect;
 
-import io.qameta.allure.AllureLifecycle;
+import io.qameta.allure.Lifecycle;
 import io.qameta.allure.model.Label;
 import io.qameta.allure.model.Link;
 import io.qameta.allure.model.TestResult;
-import io.qameta.allure.test.AllureResultsWriterStub;
+import io.qameta.allure.test.InMemoryResultsWriter;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -32,9 +32,26 @@ import static org.assertj.core.api.Assertions.assertThat;
 @RunWith(Parameterized.class)
 public class Allure1TestCaseAspectsTest {
 
-    private AllureResultsWriterStub results;
+    private InMemoryResultsWriter results;
 
-    private AllureLifecycle lifecycle;
+    private Lifecycle lifecycle;
+
+    @Before
+    public void initLifecycle() {
+        results = new InMemoryResultsWriter();
+        lifecycle = new Lifecycle(results);
+        Allure1StepsAspects.setLifecycle(lifecycle);
+
+        final String uuid = UUID.randomUUID().toString();
+        final TestResult result = new TestResult().setUuid(uuid);
+
+        lifecycle.startTest(result);
+
+        simpleTest.testSomething();
+
+        lifecycle.stopTest();
+        lifecycle.writeTest(uuid);
+    }
 
     @Parameterized.Parameter
     public SimpleTest simpleTest;
@@ -47,27 +64,9 @@ public class Allure1TestCaseAspectsTest {
         );
     }
 
-    @Before
-    public void initLifecycle() {
-        results = new AllureResultsWriterStub();
-        lifecycle = new AllureLifecycle(results);
-        Allure1TestCaseAspects.setLifecycle(lifecycle);
-
-        final String uuid = UUID.randomUUID().toString();
-        final TestResult result = new TestResult().withUuid(uuid);
-
-        lifecycle.scheduleTestCase(result);
-        lifecycle.startTestCase(uuid);
-
-        simpleTest.testSomething();
-
-        lifecycle.stopTestCase(uuid);
-        lifecycle.writeTestCase(uuid);
-    }
-
     @Test
     public void shouldProcessFeaturesAnnotation() {
-        assertThat(results.getTestResults())
+        assertThat(results.getAllTestResults())
                 .flatExtracting(TestResult::getLabels)
                 .filteredOn(label -> label.getName().equals("feature"))
                 .extracting(Label::getValue)
@@ -76,7 +75,7 @@ public class Allure1TestCaseAspectsTest {
 
     @Test
     public void shouldProcessStoriesAnnotation() {
-        assertThat(results.getTestResults())
+        assertThat(results.getAllTestResults())
                 .flatExtracting(TestResult::getLabels)
                 .filteredOn(label -> label.getName().equals("story"))
                 .extracting(Label::getValue)
@@ -86,7 +85,7 @@ public class Allure1TestCaseAspectsTest {
 
     @Test
     public void shouldProcessSeverityAnnotation() {
-        assertThat(results.getTestResults())
+        assertThat(results.getAllTestResults())
                 .flatExtracting(TestResult::getLabels)
                 .filteredOn(label -> label.getName().equals("severity"))
                 .extracting(Label::getValue)
@@ -96,7 +95,7 @@ public class Allure1TestCaseAspectsTest {
 
     @Test
     public void shouldProcessIssuesAnnotation() {
-        assertThat(results.getTestResults())
+        assertThat(results.getAllTestResults())
                 .flatExtracting(TestResult::getLinks)
                 .extracting(Link::getName)
                 .containsExactlyInAnyOrder("ISSUE-1", "ISSUE-11", "ISSUE-2", "ISSUE-22", "TEST-1");
@@ -105,11 +104,11 @@ public class Allure1TestCaseAspectsTest {
 
     @Test
     public void shouldProcessTitleAnnotation() {
-        assertThat(results.getTestResults())
+        assertThat(results.getAllTestResults())
                 .flatExtracting(TestResult::getName)
                 .containsExactlyInAnyOrder("testcase");
 
-        assertThat(results.getTestResults())
+        assertThat(results.getAllTestResults())
                 .flatExtracting(TestResult::getLabels)
                 .filteredOn(label -> label.getName().equals("suite"))
                 .extracting(Label::getValue)
@@ -118,7 +117,7 @@ public class Allure1TestCaseAspectsTest {
 
     @Test
     public void shouldProcessDescriptionAnnotation() {
-        assertThat(results.getTestResults())
+        assertThat(results.getAllTestResults())
                 .flatExtracting(TestResult::getDescription)
                 .containsExactlyInAnyOrder("testcase description");
 

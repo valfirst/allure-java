@@ -11,7 +11,9 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Deque;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 import static io.qameta.allure.util.ResultsUtils.createFeatureLabel;
@@ -37,8 +39,8 @@ class LabelBuilder {
     private static final String TMS_LINK = "@TMSLINK";
     private static final String PLAIN_LINK = "@LINK";
 
-    private final List<Label> scenarioLabels = new ArrayList<>();
-    private final List<Link> scenarioLinks = new ArrayList<>();
+    private final Set<Label> scenarioLabels = new HashSet<>();
+    private final Set<Link> scenarioLinks = new HashSet<>();
 
     LabelBuilder(final Feature feature, final TestCase scenario, final Deque<PickleTag> tags) {
         final TagParser tagParser = new TagParser(feature, scenario);
@@ -93,19 +95,19 @@ class LabelBuilder {
             }
         }
 
-        getScenarioLabels().add(new Label().withName("host").withValue(getHostName()));
-        getScenarioLabels().add(new Label().withName("package").withValue(feature.getName()));
-        getScenarioLabels().add(new Label().withName("suite").withValue(feature.getName()));
-        getScenarioLabels().add(new Label().withName("testClass").withValue(scenario.getName()));
-        getScenarioLabels().add(new Label().withName("thread").withValue(getThreadName()));
+        getScenarioLabels().add(new Label().setName("host").setValue(getHostName()));
+        getScenarioLabels().add(new Label().setName("package").setValue(feature.getName()));
+        getScenarioLabels().add(new Label().setName("suite").setValue(feature.getName()));
+        getScenarioLabels().add(new Label().setName("testClass").setValue(scenario.getName()));
+        getScenarioLabels().add(new Label().setName("thread").setValue(getThreadName()));
 
     }
 
-    public List<Label> getScenarioLabels() {
+    public Set<Label> getScenarioLabels() {
         return scenarioLabels;
     }
 
-    public List<Link> getScenarioLinks() {
+    public Set<Link> getScenarioLinks() {
         return scenarioLinks;
     }
 

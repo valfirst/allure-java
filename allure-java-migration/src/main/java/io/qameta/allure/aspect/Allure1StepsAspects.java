@@ -1,7 +1,7 @@
 package io.qameta.allure.aspect;
 
 import io.qameta.allure.Allure;
-import io.qameta.allure.AllureLifecycle;
+import io.qameta.allure.Lifecycle;
 import io.qameta.allure.model.Parameter;
 import io.qameta.allure.model.Status;
 import io.qameta.allure.model.StepResult;
@@ -15,13 +15,15 @@ import org.aspectj.lang.reflect.MethodSignature;
 import ru.yandex.qatools.allure.annotations.Step;
 
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static io.qameta.allure.aspect.Allure1Utils.getName;
 import static io.qameta.allure.aspect.Allure1Utils.getTitle;
+import static io.qameta.allure.util.ResultsUtils.getStackTraceAsString;
 import static io.qameta.allure.util.ResultsUtils.getStatus;
-import static io.qameta.allure.util.ResultsUtils.getStatusDetails;
 
 /**
  * Aspects (AspectJ) for handling {@link Step}.
@@ -30,7 +32,7 @@ import static io.qameta.allure.util.ResultsUtils.getStatusDetails;
 @SuppressWarnings("unused")
 public class Allure1StepsAspects {
 
-    private static AllureLifecycle lifecycle;
+    private static Lifecycle lifecycle;
 
     @Pointcut("@annotation(ru.yandex.qatools.allure.annotations.Step)")
     public void withStepAnnotation() {
@@ -47,23 +49,24 @@ public class Allure1StepsAspects {
         final MethodSignature methodSignature = (MethodSignature) joinPoint.getSignature();
         final String uuid = UUID.randomUUID().toString();
         final StepResult result = new StepResult()
-                .withName(createTitle(joinPoint))
-                .withParameters(getParameters(methodSignature, joinPoint.getArgs()));
+                .setName(createTitle(joinPoint))
+                .setParameters(getParameters(methodSignature, joinPoint.getArgs()));
 
-        getLifecycle().startStep(uuid, result);
+        getLifecycle().startStep(result);
     }
 
     @AfterThrowing(pointcut = "anyMethod() && withStepAnnotation()", throwing = "e")
     public void stepFailed(final JoinPoint joinPoint, final Throwable e) {
         getLifecycle().updateStep(result -> result
-                .withStatus(getStatus(e).orElse(Status.BROKEN))
-                .withStatusDetails(getStatusDetails(e).orElse(null)));
+                .setStatus(getStatus(e).orElse(Status.BROKEN))
+                .setStatusMessage(e.getMessage())
+                .setStatusTrace(getStackTraceAsString(e)));
         getLifecycle().stopStep();
     }
 
     @AfterReturning(pointcut = "anyMethod() && withStepAnnotation()", returning = "result")
     public void stepStop(final JoinPoint joinPoint, final Object result) {
-        getLifecycle().updateStep(step -> step.withStatus(Status.PASSED));
+        getLifecycle().updateStep(step -> step.setStatus(Status.PASSED));
         getLifecycle().stopStep();
     }
 
@@ -75,27 +78,25 @@ public class Allure1StepsAspects {
                 : getTitle(step.value(), methodSignature.getName(), joinPoint.getThis(), joinPoint.getArgs());
     }
 
-    private static Parameter[] getParameters(final MethodSignature signature, final Object... args) {
+    private static Set<Parameter> getParameters(final MethodSignature signature, final Object... args) {
         return IntStream.range(0, args.length).mapToObj(index -> {
             final String name = signature.getParameterNames()[index];
             final String value = Objects.toString(args[index]);
-            return new Parameter().withName(name).withValue(value);
-        }).toArray(Parameter[]::new);
+            return new Parameter().setName(name).setValue(value);
+        }).collect(Collectors.toSet());
     }
-
 
     /**
      * For tests only.
      */
-    public static void setLifecycle(final AllureLifecycle allure) {
+    public static void setLifecycle(final Lifecycle allure) {
         lifecycle = allure;
     }
 
-    public static AllureLifecycle getLifecycle() {
+    public static Lifecycle getLifecycle() {
         if (Objects.isNull(lifecycle)) {
             lifecycle = Allure.getLifecycle();
         }
         return lifecycle;
     }
-
 }

@@ -1,8 +1,8 @@
 package io.qameta.allure.aspect;
 
-import io.qameta.allure.AllureLifecycle;
+import io.qameta.allure.Lifecycle;
 import io.qameta.allure.model.TestResult;
-import io.qameta.allure.test.AllureResultsWriterStub;
+import io.qameta.allure.test.InMemoryResultsWriter;
 import org.junit.Before;
 import org.junit.Test;
 import ru.yandex.qatools.allure.annotations.Attachment;
@@ -18,31 +18,30 @@ import static org.assertj.core.api.Assertions.tuple;
  */
 public class Allure1AttachAspectsTest {
 
-    private AllureResultsWriterStub results;
+    private InMemoryResultsWriter results;
 
-    private AllureLifecycle lifecycle;
+    private Lifecycle lifecycle;
 
     @Before
     public void initLifecycle() {
-        results = new AllureResultsWriterStub();
-        lifecycle = new AllureLifecycle(results);
+        results = new InMemoryResultsWriter();
+        lifecycle = new Lifecycle(results);
         Allure1AttachAspects.setLifecycle(lifecycle);
     }
 
     @Test
     public void shouldSetupAttachmentTitleFromAnnotation() {
         final String uuid = UUID.randomUUID().toString();
-        final TestResult result = new TestResult().withUuid(uuid);
+        final TestResult result = new TestResult().setUuid(uuid);
 
-        lifecycle.scheduleTestCase(result);
-        lifecycle.startTestCase(uuid);
+        lifecycle.startTest(result);
 
         attachmentWithTitleAndType("parameter value");
 
-        lifecycle.stopTestCase(uuid);
-        lifecycle.writeTestCase(uuid);
+        lifecycle.stopTest();
+        lifecycle.writeTest(uuid);
 
-        assertThat(results.getTestResults())
+        assertThat(results.getAllTestResults())
                 .flatExtracting(TestResult::getAttachments)
                 .extracting("name", "type")
                 .containsExactly(tuple("attachment with parameter value", "text/plain"));
@@ -52,17 +51,16 @@ public class Allure1AttachAspectsTest {
     @Test
     public void shouldSetupAttachmentTitleFromMethodSignature() {
         final String uuid = UUID.randomUUID().toString();
-        final TestResult result = new TestResult().withUuid(uuid);
+        final TestResult result = new TestResult().setUuid(uuid);
 
-        lifecycle.scheduleTestCase(result);
-        lifecycle.startTestCase(uuid);
+        lifecycle.startTest(result);
 
         attachmentWithoutTitle();
 
-        lifecycle.stopTestCase(uuid);
-        lifecycle.writeTestCase(uuid);
+        lifecycle.stopTest();
+        lifecycle.writeTest(uuid);
 
-        assertThat(results.getTestResults())
+        assertThat(results.getAllTestResults())
                 .flatExtracting(TestResult::getAttachments)
                 .extracting("name", "type")
                 .containsExactly(tuple("attachmentWithoutTitle", null));
@@ -72,17 +70,16 @@ public class Allure1AttachAspectsTest {
     @Test
     public void shouldProcessNullAttachment() throws Exception {
         final String uuid = UUID.randomUUID().toString();
-        final TestResult result = new TestResult().withUuid(uuid);
+        final TestResult result = new TestResult().setUuid(uuid);
 
-        lifecycle.scheduleTestCase(result);
-        lifecycle.startTestCase(uuid);
+        lifecycle.startTest(result);
 
         attachmentWithNullValue();
 
-        lifecycle.stopTestCase(uuid);
-        lifecycle.writeTestCase(uuid);
+        lifecycle.stopTest();
+        lifecycle.writeTest(uuid);
 
-        assertThat(results.getTestResults())
+        assertThat(results.getAllTestResults())
                 .flatExtracting(TestResult::getAttachments)
                 .extracting("name", "type")
                 .containsExactly(tuple("attachmentWithNullValue", null));

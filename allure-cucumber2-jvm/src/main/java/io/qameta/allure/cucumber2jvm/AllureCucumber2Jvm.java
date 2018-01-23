@@ -25,12 +25,11 @@ import gherkin.pickles.PickleRow;
 import gherkin.pickles.PickleTable;
 import gherkin.pickles.PickleTag;
 import io.qameta.allure.Allure;
-import io.qameta.allure.AllureLifecycle;
+import io.qameta.allure.Lifecycle;
 import io.qameta.allure.model.Parameter;
 import io.qameta.allure.model.Status;
 import io.qameta.allure.model.TestResult;
 import io.qameta.allure.model.StepResult;
-import io.qameta.allure.model.StatusDetails;
 import io.qameta.allure.util.ResultsUtils;
 
 import java.io.ByteArrayInputStream;
@@ -41,6 +40,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -55,7 +55,7 @@ import java.util.stream.IntStream;
 })
 public class AllureCucumber2Jvm implements Formatter {
 
-    private final AllureLifecycle lifecycle;
+    private final Lifecycle lifecycle;
 
     private final Map<String, String> scenarioUuids = new HashMap<>();
 
@@ -105,26 +105,26 @@ public class AllureCucumber2Jvm implements Formatter {
         final LabelBuilder labelBuilder = new LabelBuilder(currentFeature, event.testCase, tags);
 
         final TestResult result = new TestResult()
-                .withUuid(getTestCaseUuid(event.testCase))
-                .withHistoryId(getHistoryId(event.testCase))
-                .withName(event.testCase.getName())
-                .withLabels(labelBuilder.getScenarioLabels())
-                .withLinks(labelBuilder.getScenarioLinks());
+                .setUuid(getTestCaseUuid(event.testCase))
+                .setHistoryId(getHistoryId(event.testCase))
+                .setName(event.testCase.getName())
+                .setLabels(labelBuilder.getScenarioLabels())
+                .setLinks(labelBuilder.getScenarioLinks());
 
         final ScenarioDefinition scenarioDefinition =
                 cucumberSourceUtils.getScenarioDefinition(currentFeatureFile, currentTestCase.getLine());
         if (scenarioDefinition instanceof ScenarioOutline) {
-            result.withParameters(
+            result.setParameters(
                     getExamplesAsParameters((ScenarioOutline) scenarioDefinition)
             );
         }
 
         if (currentFeature.getDescription() != null && !currentFeature.getDescription().isEmpty()) {
-            result.withDescription(currentFeature.getDescription());
+            result.setDescription(currentFeature.getDescription());
         }
 
         lifecycle.scheduleTestCase(result);
-        lifecycle.startTestCase(getTestCaseUuid(event.testCase));
+        lifecycle.startTest(getTestCaseUuid(event.testCase));
     }
 
     private void handleTestCaseFinished(final TestCaseFinished event) {
@@ -134,12 +134,12 @@ public class AllureCucumber2Jvm implements Formatter {
         if (statusDetails.getMessage() != null && statusDetails.getTrace() != null) {
             lifecycle.updateTestCase(getTestCaseUuid(event.testCase), scenarioResult ->
                     scenarioResult
-                            .withStatus(translateTestCaseStatus(event.result))
-                            .withStatusDetails(statusDetails));
+                            .setStatus(translateTestCaseStatus(event.result))
+                            .setStatusDetails(statusDetails));
         } else {
             lifecycle.updateTestCase(getTestCaseUuid(event.testCase), scenarioResult ->
                     scenarioResult
-                            .withStatus(translateTestCaseStatus(event.result)));
+                            .setStatus(translateTestCaseStatus(event.result)));
         }
 
         lifecycle.stopTestCase(getTestCaseUuid(event.testCase));
@@ -153,8 +153,8 @@ public class AllureCucumber2Jvm implements Formatter {
             ).orElse("UNDEFINED");
 
             final StepResult stepResult = new StepResult()
-                    .withName(String.format("%s %s", stepKeyword, event.testStep.getPickleStep().getText()))
-                    .withStart(System.currentTimeMillis());
+                    .setName(String.format("%s %s", stepKeyword, event.testStep.getPickleStep().getText()))
+                    .setStart(System.currentTimeMillis());
 
             lifecycle.startStep(getTestCaseUuid(currentTestCase), getStepUuid(event.testStep), stepResult);
 
@@ -164,8 +164,8 @@ public class AllureCucumber2Jvm implements Formatter {
                     .ifPresent(table -> createDataTableAttachment((PickleTable) table));
         } else if (event.testStep.isHook() && event.testStep instanceof UnskipableStep) {
             final StepResult stepResult = new StepResult()
-                    .withName(event.testStep.getHookType().toString())
-                    .withStart(System.currentTimeMillis());
+                    .setName(event.testStep.getHookType().toString())
+                    .setStart(System.currentTimeMillis());
 
             lifecycle.startStep(getTestCaseUuid(currentTestCase), getHookStepUuid(event.testStep), stepResult);
         }
@@ -216,7 +216,7 @@ public class AllureCucumber2Jvm implements Formatter {
         return allureStatus;
     }
 
-    private List<Parameter> getExamplesAsParameters(final ScenarioOutline scenarioOutline) {
+    private Set<Parameter> getExamplesAsParameters(final ScenarioOutline scenarioOutline) {
         final Examples examples = scenarioOutline.getExamples().get(0);
         final TableRow row = examples.getTableBody().stream()
                 .filter(example -> example.getLocation().getLine() == currentTestCase.getLine())
@@ -224,8 +224,8 @@ public class AllureCucumber2Jvm implements Formatter {
         return IntStream.range(0, examples.getTableHeader().getCells().size()).mapToObj(index -> {
             final String name = examples.getTableHeader().getCells().get(index).getValue();
             final String value = row.getCells().get(index).getValue();
-            return new Parameter().withName(name).withValue(value);
-        }).collect(Collectors.toList());
+            return new Parameter().setName(name).setValue(value);
+        }).collect(Collectors.toSet());
     }
 
     private void createDataTableAttachment(final PickleTable pickleTable) {
@@ -251,24 +251,24 @@ public class AllureCucumber2Jvm implements Formatter {
 
     private void handleHookStep(final TestStepFinished event) {
         final String uuid = getHookStepUuid(event.testStep);
-        Consumer<StepResult> stepResult = result -> result.withStatus(translateTestCaseStatus(event.result));
+        Consumer<StepResult> stepResult = result -> result.setStatus(translateTestCaseStatus(event.result));
 
         if (!Status.PASSED.equals(translateTestCaseStatus(event.result))) {
             final StatusDetails statusDetails = ResultsUtils.getStatusDetails(event.result.getError()).get();
             if (event.testStep.getHookType() == HookType.Before) {
                 final TagParser tagParser = new TagParser(currentFeature, currentTestCase);
                 statusDetails
-                        .withMessage("Before is failed: " + event.result.getError().getLocalizedMessage())
-                        .withFlaky(tagParser.isFlaky())
-                        .withMuted(tagParser.isMuted())
-                        .withKnown(tagParser.isKnown());
+                        .setMessage("Before is failed: " + event.result.getError().getLocalizedMessage())
+                        .setFlaky(tagParser.isFlaky())
+                        .setMuted(tagParser.isMuted())
+                        .setKnown(tagParser.isKnown());
                 lifecycle.updateTestCase(getTestCaseUuid(currentTestCase), scenarioResult ->
-                        scenarioResult.withStatus(Status.SKIPPED)
-                                .withStatusDetails(statusDetails));
+                        scenarioResult.setStatus(Status.SKIPPED)
+                                .setStatusDetails(statusDetails));
             }
             stepResult = result -> result
-                    .withStatus(translateTestCaseStatus(event.result))
-                    .withStatusDetails(statusDetails);
+                    .setStatus(translateTestCaseStatus(event.result))
+                    .setStatusDetails(statusDetails);
         }
 
         lifecycle.updateStep(uuid, stepResult);
@@ -283,8 +283,8 @@ public class AllureCucumber2Jvm implements Formatter {
                             .orElse(new StatusDetails());
             lifecycle.updateTestCase(getTestCaseUuid(currentTestCase), scenarioResult ->
                     scenarioResult
-                            .withStatus(translateTestCaseStatus(event.result))
-                            .withStatusDetails(statusDetails));
+                            .setStatus(translateTestCaseStatus(event.result))
+                            .setStatusDetails(statusDetails));
         } else {
             statusDetails =
                     ResultsUtils.getStatusDetails(event.result.getError())
@@ -293,12 +293,12 @@ public class AllureCucumber2Jvm implements Formatter {
 
         final TagParser tagParser = new TagParser(currentFeature, currentTestCase);
         statusDetails
-                .withFlaky(tagParser.isFlaky())
-                .withMuted(tagParser.isMuted())
-                .withKnown(tagParser.isKnown());
+                .setFlaky(tagParser.isFlaky())
+                .setMuted(tagParser.isMuted())
+                .setKnown(tagParser.isKnown());
 
         lifecycle.updateStep(getStepUuid(event.testStep), stepResult ->
-                stepResult.withStatus(translateTestCaseStatus(event.result)));
+                stepResult.setStatus(translateTestCaseStatus(event.result)));
         lifecycle.stopStep(getStepUuid(event.testStep));
     }
 }

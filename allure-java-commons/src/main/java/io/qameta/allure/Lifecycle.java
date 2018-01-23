@@ -107,7 +107,8 @@ public class Lifecycle {
     }
 
     public synchronized AttachmentContentWriter addAttachment(final String name,
-                                                              final String contentType, final String extension) {
+                                                              final String contentType,
+                                                              final String extension) {
         final Optional<Executable> executable = currentStepOrTest();
         if (executable.isPresent()) {
             final String uuid = UUID.randomUUID().toString();
@@ -159,6 +160,9 @@ public class Lifecycle {
         return testResult -> testResult.getChildren().add(uuid);
     }
 
+    /**
+     * Class for InheritableThreadLocal.
+     */
     protected static class ExecutableStorage extends InheritableThreadLocal<Deque<Executable>> {
 
         @Override
@@ -168,7 +172,7 @@ public class Lifecycle {
 
         @Override
         protected Deque<Executable> childValue(final Deque<Executable> parentValue) {
-            Deque<Executable> queue = new LinkedList<>();
+            final Deque<Executable> queue = new LinkedList<>();
             if (!parentValue.isEmpty()) {
                 queue.add(parentValue.getFirst());
             }

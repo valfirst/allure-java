@@ -1,7 +1,7 @@
 package io.qameta.allure.aspect;
 
 import io.qameta.allure.Allure;
-import io.qameta.allure.AllureLifecycle;
+import io.qameta.allure.Lifecycle;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
@@ -15,7 +15,7 @@ import java.util.Objects;
 @Aspect
 public class Allure1TestCaseAspects {
 
-    private static AllureLifecycle lifecycle;
+    private static Lifecycle lifecycle;
 
     @Before("execution(@org.junit.Test * *.*(..))")
     public void junitTestStart(final JoinPoint joinPoint) {
@@ -32,27 +32,25 @@ public class Allure1TestCaseAspects {
         final Object[] args = joinPoint.getArgs();
         final Object target = joinPoint.getTarget();
         final Allure1Annotations annotations = new Allure1Annotations(target, signature, args);
-        getLifecycle().getCurrentTestCase().ifPresent(uuid -> {
-            getLifecycle().updateTestCase(uuid, annotations::updateTitle);
-            getLifecycle().updateTestCase(uuid, annotations::updateDescription);
-            getLifecycle().updateTestCase(uuid, annotations::updateParameters);
-            getLifecycle().updateTestCase(uuid, annotations::updateLabels);
-            getLifecycle().updateTestCase(uuid, annotations::updateLinks);
-        });
+
+        getLifecycle().updateTest(annotations::updateTitle);
+        getLifecycle().updateTest(annotations::updateDescription);
+        getLifecycle().updateTest(annotations::updateParameters);
+        getLifecycle().updateTest(annotations::updateLabels);
+        getLifecycle().updateTest(annotations::updateLinks);
     }
 
     /**
      * For tests only.
      */
-    public static void setLifecycle(final AllureLifecycle lifecycle) {
+    public static void setLifecycle(final Lifecycle lifecycle) {
         Allure1TestCaseAspects.lifecycle = lifecycle;
     }
 
-    public static AllureLifecycle getLifecycle() {
+    public static Lifecycle getLifecycle() {
         if (Objects.isNull(lifecycle)) {
             lifecycle = Allure.getLifecycle();
         }
         return lifecycle;
     }
-
 }

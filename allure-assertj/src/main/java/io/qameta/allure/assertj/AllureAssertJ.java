@@ -1,7 +1,7 @@
 package io.qameta.allure.assertj;
 
 import io.qameta.allure.Allure;
-import io.qameta.allure.AllureLifecycle;
+import io.qameta.allure.Lifecycle;
 import io.qameta.allure.model.Status;
 import io.qameta.allure.model.StepResult;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -12,12 +12,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Objects;
-import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static io.qameta.allure.util.ResultsUtils.getStatus;
-import static io.qameta.allure.util.ResultsUtils.getStatusDetails;
+import static io.qameta.allure.util.ResultsUtils.getStackTraceAsString;
 import static java.util.Objects.nonNull;
 
 /**
@@ -26,11 +25,11 @@ import static java.util.Objects.nonNull;
  */
 @SuppressWarnings("all")
 @Aspect
-public class AllureAspectJ {
+public class AllureAssertJ {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(AllureAspectJ.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(AllureAssertJ.class);
 
-    private static AllureLifecycle lifecycle;
+    private static Lifecycle lifecycle;
 
     @Around("execution(* org.assertj.core.api.AbstractAssert+.*(..)) "
             + "|| execution(* org.assertj.core.api.Assertions.assertThat(..))")
@@ -39,21 +38,21 @@ public class AllureAspectJ {
         final String name = joinPoint.getArgs().length > 0
                 ? String.format("%s \'%s\'", methodSignature.getName(), arrayToString(joinPoint.getArgs()))
                 : methodSignature.getName();
-        final String uuid = UUID.randomUUID().toString();
         final StepResult result = new StepResult()
-                .withName(name);
-        getLifecycle().startStep(uuid, result);
+                .setName(name);
+        getLifecycle().startStep(result);
         try {
             final Object proceed = joinPoint.proceed();
-            getLifecycle().updateStep(uuid, s -> s.withStatus(Status.PASSED));
+            getLifecycle().updateStep(s -> s.setStatus(Status.PASSED));
             return proceed;
         } catch (Throwable e) {
-            getLifecycle().updateStep(uuid, s -> s
-                    .withStatus(getStatus(e).orElse(Status.BROKEN))
-                    .withStatusDetails(getStatusDetails(e).orElse(null)));
+            getLifecycle().updateStep(s -> s
+                    .setStatus(getStatus(e).orElse(Status.BROKEN))
+                    .setStatusMessage(e.getMessage())
+                    .setStatusTrace(getStackTraceAsString(e)));
             throw e;
         } finally {
-            getLifecycle().stopStep(uuid);
+            getLifecycle().stopStep();
         }
     }
 
@@ -62,11 +61,11 @@ public class AllureAspectJ {
      *
      * @param allure allure lifecycle to set.
      */
-    public static void setLifecycle(final AllureLifecycle allure) {
+    public static void setLifecycle(final Lifecycle allure) {
         lifecycle = allure;
     }
 
-    public static AllureLifecycle getLifecycle() {
+    public static Lifecycle getLifecycle() {
         if (Objects.isNull(lifecycle)) {
             lifecycle = Allure.getLifecycle();
         }

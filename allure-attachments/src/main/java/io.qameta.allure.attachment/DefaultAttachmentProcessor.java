@@ -1,22 +1,20 @@
 package io.qameta.allure.attachment;
 
 import io.qameta.allure.Allure;
-import io.qameta.allure.AllureLifecycle;
-
-import java.nio.charset.StandardCharsets;
+import io.qameta.allure.Lifecycle;
 
 /**
  * @author charlie (Dmitry Baev).
  */
 public class DefaultAttachmentProcessor implements AttachmentProcessor<AttachmentData> {
 
-    private final AllureLifecycle lifecycle;
+    private final Lifecycle lifecycle;
 
     public DefaultAttachmentProcessor() {
         this(Allure.getLifecycle());
     }
 
-    public DefaultAttachmentProcessor(final AllureLifecycle lifecycle) {
+    public DefaultAttachmentProcessor(final Lifecycle lifecycle) {
         this.lifecycle = lifecycle;
     }
 
@@ -27,8 +25,7 @@ public class DefaultAttachmentProcessor implements AttachmentProcessor<Attachmen
         lifecycle.addAttachment(
                 attachmentData.getName(),
                 content.getContentType(),
-                content.getFileExtension(),
-                content.getContent().getBytes(StandardCharsets.UTF_8)
+                content.getFileExtension()
         );
     }
 }

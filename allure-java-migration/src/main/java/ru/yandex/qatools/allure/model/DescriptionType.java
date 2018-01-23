@@ -20,5 +20,4 @@ public enum DescriptionType {
     public String value() {
         return value;
     }
-
 }
