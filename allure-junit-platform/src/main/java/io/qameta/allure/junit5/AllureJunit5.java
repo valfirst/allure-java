@@ -101,9 +101,10 @@ public class AllureJunit5 implements TestExecutionListener {
                         break;
                     default:
                         result.setStatus(SKIPPED);
-                        testExecutionResult.getThrowable().ifPresent(throwable ->
-                                result.setStatusTrace(getStackTraceAsString(throwable))
-                        );
+                        testExecutionResult.getThrowable().ifPresent(throwable -> {
+                            result.setStatusMessage(throwable.getMessage());
+                            result.setStatusTrace(getStackTraceAsString(throwable));
+                        });
                         break;
                 }
             });
