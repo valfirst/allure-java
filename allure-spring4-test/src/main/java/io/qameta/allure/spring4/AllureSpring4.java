@@ -99,11 +99,11 @@ public class AllureSpring4 implements TestExecutionListener {
         testCases.remove();
         getLifecycle().updateTest(testResult -> {
             testResult.setStatus(getStatus(testContext.getTestException()).orElse(Status.PASSED));
-            if (!Objects.isNull(testContext.getTestException())) {
-                testResult.setStatusMessage(getStatusMessage(testContext.getTestException()).orElse(null));
-                testResult.setStatusTrace(getStackTraceAsString(testContext.getTestException()));
-            }
         });
+        Optional.ofNullable(testContext.getTestException()).ifPresent(throwable -> getLifecycle().updateTest(testResult -> {
+            testResult.setStatusMessage(getStatusMessage(throwable).orElse(null));
+            testResult.setStatusTrace(getStackTraceAsString(throwable));
+        }));
         getLifecycle().stopTest();
         getLifecycle().writeTest(uuid);
     }

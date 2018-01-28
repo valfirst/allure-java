@@ -12,6 +12,7 @@ import java.util.Set;
 /**
  * @author charlie (Dmitry Baev).
  */
+@SuppressWarnings("PMD.TooManyFields")
 @Data
 @Accessors(chain = true)
 public class TestResult implements Serializable, Executable {
