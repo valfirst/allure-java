@@ -23,7 +23,6 @@ import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -97,13 +96,15 @@ public class AllureSpring4 implements TestExecutionListener {
     public void afterTestMethod(final TestContext testContext) throws Exception {
         final String uuid = testCases.get();
         testCases.remove();
-        getLifecycle().updateTest(testResult -> {
-            testResult.setStatus(getStatus(testContext.getTestException()).orElse(Status.PASSED));
-        });
-        Optional.ofNullable(testContext.getTestException()).ifPresent(throwable -> getLifecycle().updateTest(testResult -> {
-            testResult.setStatusMessage(getStatusMessage(throwable).orElse(null));
-            testResult.setStatusTrace(getStackTraceAsString(throwable));
-        }));
+        getLifecycle().updateTest(
+            testResult -> testResult.setStatus(getStatus(testContext.getTestException()).orElse(Status.PASSED))
+        );
+        Optional.ofNullable(testContext.getTestException()).ifPresent(
+            throwable -> getLifecycle().updateTest(testResult -> {
+                testResult.setStatusMessage(getStatusMessage(throwable).orElse(null));
+                testResult.setStatusTrace(getStackTraceAsString(throwable));
+            })
+        );
         getLifecycle().stopTest();
         getLifecycle().writeTest(uuid);
     }
