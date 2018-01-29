@@ -12,7 +12,6 @@ import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
 
 import java.nio.charset.StandardCharsets;
-import java.util.UUID;
 
 import static io.qameta.allure.util.ResultsUtils.getStackTraceAsString;
 

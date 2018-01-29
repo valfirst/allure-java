@@ -43,7 +43,7 @@ public class Allure1AttachAspectsTest {
 
         assertThat(results.getAllTestResults())
                 .flatExtracting(TestResult::getAttachments)
-                .extracting("name", "type")
+                .extracting("name", "contentType")
                 .containsExactly(tuple("attachment with parameter value", "text/plain"));
 
     }
@@ -62,8 +62,8 @@ public class Allure1AttachAspectsTest {
 
         assertThat(results.getAllTestResults())
                 .flatExtracting(TestResult::getAttachments)
-                .extracting("name", "type")
-                .containsExactly(tuple("attachmentWithoutTitle", null));
+                .extracting("name", "contentType")
+                .containsExactly(tuple("attachmentWithoutTitle", ""));
 
     }
 
@@ -81,8 +81,8 @@ public class Allure1AttachAspectsTest {
 
         assertThat(results.getAllTestResults())
                 .flatExtracting(TestResult::getAttachments)
-                .extracting("name", "type")
-                .containsExactly(tuple("attachmentWithNullValue", null));
+                .extracting("name", "contentType")
+                .containsExactly(tuple("attachmentWithNullValue", ""));
     }
 
     @Attachment
