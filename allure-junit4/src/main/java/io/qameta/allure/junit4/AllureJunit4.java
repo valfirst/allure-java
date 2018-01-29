@@ -9,6 +9,7 @@ import io.qameta.allure.Severity;
 import io.qameta.allure.Story;
 import io.qameta.allure.model.Label;
 import io.qameta.allure.model.Link;
+import io.qameta.allure.model.Stage;
 import io.qameta.allure.model.Status;
 import io.qameta.allure.model.TestResult;
 import io.qameta.allure.util.ResultsUtils;
@@ -89,6 +90,7 @@ public class AllureJunit4 extends RunListener {
         final String uuid = testCases.get();
         testCases.remove();
         getLifecycle().updateTest(testResult -> {
+            testResult.setStage(Stage.FINISHED);
             if (Objects.isNull(testResult.getStatus())) {
                 testResult.setStatus(Status.PASSED);
             }
@@ -100,6 +102,7 @@ public class AllureJunit4 extends RunListener {
     @Override
     public void testFailure(final Failure failure) throws Exception {
         getLifecycle().updateTest(testResult -> testResult
+                .setStage(Stage.PENDING)
                 .setStatus(getStatus(failure.getException()).orElse(null))
                 .setStatusMessage(failure.getMessage())
                 .setStatusTrace(getStackTraceAsString(failure.getException()))
@@ -109,6 +112,7 @@ public class AllureJunit4 extends RunListener {
     @Override
     public void testAssumptionFailure(final Failure failure) {
         getLifecycle().updateTest(testResult -> testResult
+                .setStage(Stage.PENDING)
                 .setStatus(Status.SKIPPED)
                 .setStatusMessage(failure.getMessage())
                 .setStatusTrace(getStackTraceAsString(failure.getException()))
@@ -121,6 +125,7 @@ public class AllureJunit4 extends RunListener {
         testCases.remove();
 
         final TestResult result = createTestResult(uuid, description);
+        result.setStage(Stage.PENDING);
         result.setStatus(Status.SKIPPED);
         result.setStatusMessage(getIgnoredMessage(description));
         result.setStart(System.currentTimeMillis());
@@ -176,6 +181,23 @@ public class AllureJunit4 extends RunListener {
         }
 
         return labels.stream();
+    }
+
+    private Set<Label> getLabels(final Description description,
+                                 final String suite) {
+        final String testPackage = getPackage(description.getTestClass());
+        final String className = description.getClassName();
+        final String methodName = description.getMethodName();
+        final String name = Objects.nonNull(methodName) ? methodName : className;
+
+        return Stream.of(
+                new Label().setName("package").setValue(testPackage),
+                new Label().setName("testClass").setValue(className),
+                new Label().setName("testMethod").setValue(name),
+                new Label().setName("suite").setValue(suite),
+                new Label().setName("host").setValue(getHostName()),
+                new Label().setName("thread").setValue(getThreadName())
+        ).collect(Collectors.toSet());
     }
 
     private Label createLabel(final Tag tag) {
@@ -243,13 +265,11 @@ public class AllureJunit4 extends RunListener {
 
     private String getIgnoredMessage(final Description description) {
         final Ignore ignore = description.getAnnotation(Ignore.class);
-        final String message = Objects.nonNull(ignore) && !ignore.value().isEmpty()
+        return Objects.nonNull(ignore) && !ignore.value().isEmpty()
                 ? ignore.value() : "Test ignored (without reason)!";
-        return message;
     }
 
     private TestResult createTestResult(final String uuid, final Description description) {
-        final String testPackage = getPackage(description.getTestClass());
         final String className = description.getClassName();
         final String methodName = description.getMethodName();
         final String name = Objects.nonNull(methodName) ? methodName : className;
@@ -259,28 +279,15 @@ public class AllureJunit4 extends RunListener {
 
         final TestResult testResult = new TestResult()
                 .setUuid(uuid)
+                .setStage(Stage.RUNNING)
                 .setHistoryId(getHistoryId(description))
                 .setName(name)
                 .setFullName(fullName)
                 .setLinks(getLinks(description))
-                .setLabels(getLabels(testPackage, className, name, suite));
+                .setLabels(getLabels(description, suite));
         testResult.getLabels().addAll(getLabels(description));
         getDisplayName(description).ifPresent(testResult::setName);
         getDescription(description).ifPresent(testResult::setDescription);
         return testResult;
-    }
-
-    private Set<Label> getLabels(final String testPackage,
-                                 final String className,
-                                 final String name,
-                                 final String suite) {
-        return Stream.of(
-                new Label().setName("package").setValue(testPackage),
-                new Label().setName("testClass").setValue(className),
-                new Label().setName("testMethod").setValue(name),
-                new Label().setName("suite").setValue(suite),
-                new Label().setName("host").setValue(getHostName()),
-                new Label().setName("thread").setValue(getThreadName())
-        ).collect(Collectors.toSet());
     }
 }
