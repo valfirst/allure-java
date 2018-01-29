@@ -263,7 +263,7 @@ public class FeatureCombinationsTest {
                 .hasSize(1)
                 .flatExtracting(TestResult::getLinks)
                 .extracting(Link::getName)
-                .containsExactly("link-1", "link-2", "issue-1", "issue-2", "tms-1", "tms-2");
+                .containsExactlyInAnyOrder("link-1", "link-2", "issue-1", "issue-2", "tms-1", "tms-2");
     }
 
     @Test
