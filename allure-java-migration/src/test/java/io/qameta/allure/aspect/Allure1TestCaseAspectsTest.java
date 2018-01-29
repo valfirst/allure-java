@@ -40,7 +40,7 @@ public class Allure1TestCaseAspectsTest {
     public void initLifecycle() {
         results = new InMemoryResultsWriter();
         lifecycle = new Lifecycle(results);
-        Allure1StepsAspects.setLifecycle(lifecycle);
+        Allure1TestCaseAspects.setLifecycle(lifecycle);
 
         final String uuid = UUID.randomUUID().toString();
         final TestResult result = new TestResult().setUuid(uuid);
