@@ -12,6 +12,7 @@ import io.qameta.allure.model.TestResult;
 import io.qameta.allure.test.InMemoryResultsWriter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.platform.engine.discovery.ClassSelector;
 import org.junit.platform.engine.discovery.DiscoverySelectors;
@@ -27,15 +28,18 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class AnnotationsTest {
 
-    private InMemoryResultsWriter results = new InMemoryResultsWriter();
+    private InMemoryResultsWriter results;
 
-    private Lifecycle lifecycle = new Lifecycle(results);
+    private Lifecycle lifecycle;
 
     @BeforeEach
     void setProperties() {
+        results  = new InMemoryResultsWriter();
+        lifecycle = new Lifecycle(results);
         System.setProperty("junit.jupiter.extensions.autodetection.enabled", "true");
     }
 
+    @Tag("one")
     @Test
     void shouldProcessMethodLabels() {
         runClasses(TestWithMethodLabels.class);
@@ -128,6 +132,7 @@ public class AnnotationsTest {
                 .selectors(classSelectors)
                 .build();
 
+        //TODO: start launcher with a given listener
         AllureJunit5AnnotationProcessor.setLifecycle(lifecycle);
         final Launcher launcher = LauncherFactory.create();
         launcher.execute(request, new AllureJunit5(lifecycle));
