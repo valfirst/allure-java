@@ -130,7 +130,7 @@ public class Lifecycle {
 
     public Optional<TestResult> currentTest() {
         final Deque<Executable> deque = storage.get();
-        return Optional.of(deque.peekFirst())
+        return Optional.ofNullable(deque.peekFirst())
                 .filter(TestResult.class::isInstance)
                 .map(TestResult.class::cast);
     }
@@ -180,6 +180,4 @@ public class Lifecycle {
             return queue;
         }
     }
-
-
 }
