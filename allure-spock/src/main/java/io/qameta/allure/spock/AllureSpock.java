@@ -14,6 +14,7 @@ import io.qameta.allure.Story;
 import io.qameta.allure.TmsLink;
 import io.qameta.allure.model.Label;
 import io.qameta.allure.model.Parameter;
+import io.qameta.allure.model.Stage;
 import io.qameta.allure.model.Status;
 import io.qameta.allure.model.TestResult;
 import io.qameta.allure.util.ResultsUtils;
@@ -278,6 +279,7 @@ public class AllureSpock extends AbstractRunListener implements IGlobalExtension
     @Override
     public void error(final ErrorInfo error) {
         getLifecycle().updateTest(testResult -> testResult
+                .setStage(Stage.PENDING)
                 .setStatus(getStatus(error.getException()).orElse(null))
                 .setStatusMessage(getStatusMessage(error.getException()).orElse(null))
                 .setStatusTrace(getStackTraceAsString(error.getException()))
@@ -290,6 +292,7 @@ public class AllureSpock extends AbstractRunListener implements IGlobalExtension
         testResults.remove();
 
         getLifecycle().updateTest(testResult -> {
+            testResult.setStage(Stage.FINISHED);
             if (Objects.isNull(testResult.getStatus())) {
                 testResult.setStatus(Status.PASSED);
             }

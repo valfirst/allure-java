@@ -139,7 +139,7 @@ class AllureSpockTest {
                 .hasSize(1)
                 .flatExtracting({it.links})
                 .extracting({it.name})
-                .containsExactly("link-1", "link-2", "issue-1", "issue-2", "tms-1", "tms-2")
+                .containsExactlyInAnyOrder("link-1", "link-2", "issue-1", "issue-2", "tms-1", "tms-2")
     }
 
     private static Predicate<TestResult> flakyPredicate() {
