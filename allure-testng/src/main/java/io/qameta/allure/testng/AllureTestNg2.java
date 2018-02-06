@@ -275,7 +275,7 @@ public class AllureTestNg2 implements ISuiteListener, ITestListener, IClassListe
     }
 
     private void addTestMethodToGroupsConfiguration(final ITestNGMethod testMethod, final TestResult result) {
-        Arrays.stream(testMethod.getGroups()).forEach(
+        Arrays.stream(getTestGroups(testMethod)).forEach(
             group -> addTestMethodToGroupConfiguration(result, group)
         );
     }
@@ -302,7 +302,7 @@ public class AllureTestNg2 implements ISuiteListener, ITestListener, IClassListe
     }
 
     private void beforeGroupsConfiguration(final ITestNGMethod testMethod, final TestResult result) {
-        Arrays.stream(testMethod.getGroups()).forEach(
+        Arrays.stream(getTestGroups(testMethod)).forEach(
             group -> addGroupToGroupsConfiguration(result, group)
         );
     }
@@ -360,7 +360,7 @@ public class AllureTestNg2 implements ISuiteListener, ITestListener, IClassListe
                 uuid -> lifecycle.updateTest(dependsOn(uuid))
             );
         } else if (testMethod.isAfterGroupsConfiguration()) {
-            Arrays.stream(testMethod.getGroups()).forEach(
+            Arrays.stream(getTestGroups(testMethod)).forEach(
                 group -> groupTestMethods.get(group).forEach(
                     uuid -> lifecycle.updateTest(dependsOn(uuid))
                 )
@@ -368,6 +368,11 @@ public class AllureTestNg2 implements ISuiteListener, ITestListener, IClassListe
         } else if (testMethod.isAfterMethodConfiguration()) {
             lifecycle.updateTest(dependsOn(currentTest.get()));
         }
+    }
+
+    private String[] getTestGroups(ITestNGMethod testMethod) {
+        //TODO: Get groups in case of using value() method (ex. @BeforeGroup("A"))
+        return testMethod.getGroups();
     }
 
     private void updateExecution(final ITestResult testResult) {
