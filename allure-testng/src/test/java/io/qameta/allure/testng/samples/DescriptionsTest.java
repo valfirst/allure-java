@@ -13,8 +13,7 @@ public class DescriptionsTest {
     /**
      * Sample test description
      */
-    @Description(useJavaDoc = true)
-    @Test
+    @Test(description = "Sample test description")
     public void test() {
         step();
     }
