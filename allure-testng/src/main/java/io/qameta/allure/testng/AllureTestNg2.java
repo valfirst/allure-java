@@ -49,6 +49,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static io.qameta.allure.Lifecycle.dependsOn;
 import static io.qameta.allure.util.ResultsUtils.firstNonEmpty;
 import static io.qameta.allure.util.ResultsUtils.getHostName;
 import static io.qameta.allure.util.ResultsUtils.getStatus;
@@ -61,7 +62,7 @@ import static java.util.stream.IntStream.range;
 /**
  * @author charlie (Dmitry Baev).
  */
-@SuppressWarnings("all")
+@SuppressWarnings({"PMD.ExcessiveImports", "PMD.GodClass", "PMD.TooManyMethods", "BooleanExpressionComplexity"})
 public class AllureTestNg2 implements ISuiteListener, IClassListener, IInvokedMethodListener2, IExecutionListener {
 
     private static final String MD_5 = "md5";
@@ -113,18 +114,18 @@ public class AllureTestNg2 implements ISuiteListener, IClassListener, IInvokedMe
     @Override
     public void onFinish(final ISuite suite) {
         writeBeforeSuiteFixture(suite);
-        writeBeforeTestFixture(suite);
+        writeBeforeTestFixtures(suite);
     }
 
     @Override
-    public void onBeforeClass(ITestClass testClass) {
+    public void onBeforeClass(final ITestClass testClass) {
         classBeforeConfigurations.put(testClass, new HashSet<>());
         classTestMethods.put(testClass, new HashSet<>());
     }
 
     @Override
-    public void onAfterClass(ITestClass testClass) {
-        writeBeforeClassFixture(testClass);
+    public void onAfterClass(final ITestClass testClass) {
+        writeBeforeClassFixtures(testClass);
     }
 
     @Override
@@ -134,62 +135,73 @@ public class AllureTestNg2 implements ISuiteListener, IClassListener, IInvokedMe
 
     @Override
     public void onExecutionFinish() {
-        writeBeforeGroupFixture();
+        writeBeforeGroupFixtures();
     }
 
     private void writeBeforeMethodFixture() {
         currentBefores.get().forEach(methodUuid -> {
-            lifecycle.updateTest(methodUuid, lifecycle.dependsOn(currentTest.get()));
+            lifecycle.updateTest(methodUuid, dependsOn(currentTest.get()));
             lifecycle.writeTest(methodUuid);
         });
         currentBefores.remove();
     }
 
-    private void writeBeforeGroupFixture() {
+    private void writeBeforeGroupFixtures() {
         groupBeforeConfigurations.forEach(
             (group, groupUuids) -> {
-                groupUuids.forEach(groupUuid -> {
-                    groupTestMethods.get(group).forEach(
-                            uuid -> lifecycle.updateTest(groupUuid, lifecycle.dependsOn(uuid))
-                    );
-                    lifecycle.writeTest(groupUuid);
-                });
+                groupUuids.forEach(
+                    groupUuid -> writeBeforeGroupFixture(group, groupUuid)
+                );
                 groupBeforeConfigurations.remove(group);
                 groupTestMethods.remove(group);
             }
         );
     }
 
-    private void writeBeforeClassFixture(ITestClass testClass) {
+    private void writeBeforeGroupFixture(final String group, final String groupUuid) {
+        groupTestMethods.get(group).forEach(
+            uuid -> lifecycle.updateTest(groupUuid, dependsOn(uuid))
+        );
+        lifecycle.writeTest(groupUuid);
+    }
+
+    private void writeBeforeClassFixtures(final ITestClass testClass) {
         classBeforeConfigurations.get(testClass).forEach(
-            testClassUuid -> {
-                classTestMethods.get(testClass).forEach(
-                        uuid -> lifecycle.updateTest(testClassUuid, lifecycle.dependsOn(uuid))
-                );
-                lifecycle.writeTest(testClassUuid);
-        });
+            testClassUuid -> writeBeforeClassFixture(testClass, testClassUuid)
+        );
         suiteBeforeConfigurations.remove(testClass);
     }
 
-    private void writeBeforeTestFixture(final ISuite suite) {
+    private void writeBeforeClassFixture(final ITestClass testClass, final String testClassUuid) {
+        classTestMethods.get(testClass).forEach(
+            uuid -> lifecycle.updateTest(testClassUuid, dependsOn(uuid))
+        );
+        lifecycle.writeTest(testClassUuid);
+    }
+
+    private void writeBeforeTestFixtures(final ISuite suite) {
         testBeforeConfigurations.entrySet().stream()
             .filter(map -> map.getKey().getSuite().equals(suite))
-            .collect(Collectors.toMap(entry -> entry.getKey(), entry -> entry.getValue()))
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))
             .forEach((context, testUuids) -> {
-                    testUuids.forEach(testUuid -> {
-                        testTestMethods.get(context).forEach(
-                                uuid -> lifecycle.updateTest(testUuid, lifecycle.dependsOn(uuid))
-                        );
-                        lifecycle.writeTest(testUuid);
-                    });
-                    testBeforeConfigurations.remove(context);
+                testUuids.forEach(
+                    testUuid -> writeBeforeTestFixture(context, testUuid)
+                );
+                testBeforeConfigurations.remove(context);
             });
+    }
+
+    private void writeBeforeTestFixture(final ITestContext context, final String testUuid) {
+        testTestMethods.get(context).forEach(
+            uuid -> lifecycle.updateTest(testUuid, dependsOn(uuid))
+        );
+        lifecycle.writeTest(testUuid);
     }
 
     private void writeBeforeSuiteFixture(final ISuite suite) {
         suiteBeforeConfigurations.get(suite).forEach(suiteUuid -> {
             suiteTestMethods.get(suite).forEach(
-                    uuid -> lifecycle.updateTest(suiteUuid, lifecycle.dependsOn(uuid))
+                uuid -> lifecycle.updateTest(suiteUuid, dependsOn(uuid))
             );
             lifecycle.writeTest(suiteUuid);
         });
@@ -197,8 +209,14 @@ public class AllureTestNg2 implements ISuiteListener, IClassListener, IInvokedMe
     }
 
     @Override
+    public void beforeInvocation(final IInvokedMethod method, final ITestResult testResult) {
+        //do nothing
+    }
+
+    @Override
     public void beforeInvocation(final IInvokedMethod method,
-                                 final ITestResult testResult, final ITestContext context) {
+                                 final ITestResult testResult,
+                                 final ITestContext context) {
         final ITestNGMethod testMethod = method.getTestMethod();
         final Set<Parameter> parameters = getParameters(testResult);
         final TestResult result = getResult(testMethod)
@@ -212,63 +230,128 @@ public class AllureTestNg2 implements ISuiteListener, IClassListener, IInvokedMe
             suiteBeforeConfigurations.get(context.getSuite()).add(result.getUuid());
         }
         if (testMethod.isBeforeTestConfiguration()) {
-            if (Objects.isNull(testBeforeConfigurations.get(context))) {
-                testBeforeConfigurations.put(context, new HashSet<>());
-            }
-            testBeforeConfigurations.get(context).add(result.getUuid());
+            beforeTestConfiguration(context, result);
         }
         if (testMethod.isBeforeClassConfiguration()) {
             classBeforeConfigurations.get(testMethod.getTestClass()).add(result.getUuid());
         }
         if (testMethod.isBeforeGroupsConfiguration()) {
-            Arrays.stream(testMethod.getGroups()).forEach(
-                group -> {
-                    if (Objects.isNull(groupBeforeConfigurations.get(group))) {
-                        groupBeforeConfigurations.put(group, new HashSet<>());
-                    }
-                    groupBeforeConfigurations.get(group).add(result.getUuid());
-                }
-            );
+            beforeGroupsConfiguration(testMethod, result);
         }
         if (testMethod.isBeforeMethodConfiguration()) {
             currentBefores.get().add(result.getUuid());
-//            if (Objects.isNull(methodBeforeConfigurations.get(context))) {
-//                methodBeforeConfigurations.put(testMethod.getMethodName(), new HashSet<>());
-//            }
-//            methodBeforeConfigurations.get(testMethod.getMethodName()).add(result.getUuid());
         }
         if (testMethod.isTest()) {
-            suiteTestMethods.get(context.getSuite()).add(result.getUuid());
-
-            if (Objects.isNull(testTestMethods.get(context))) {
-                testTestMethods.put(context, new HashSet<>());
-            }
-            testTestMethods.get(context).add(result.getUuid());
-
-            classTestMethods.get(testMethod.getTestClass()).add(result.getUuid());
-
-            Arrays.stream(testMethod.getGroups()).forEach(
-                group -> {
-                    if (Objects.isNull(groupTestMethods.get(group))) {
-                        groupTestMethods.put(group, new HashSet<>());
-                    }
-                    groupTestMethods.get(group).add(result.getUuid());
-                }
-            );
-            currentTest.set(result.getUuid());
-            writeBeforeMethodFixture();
+            beforeTestMethod(context, testMethod, result);
         }
         lifecycle.startTest(result);
     }
 
+    private void beforeTestMethod(final ITestContext context,
+                                  final ITestNGMethod testMethod,
+                                  final TestResult result) {
+        suiteTestMethods.get(context.getSuite()).add(result.getUuid());
+        addTestMethodToTestCofiguration(context, result);
+        addTestMethodToClassConfiguration(testMethod, result);
+        addTestMethodToGroupsConfiguration(testMethod, result);
+        currentTest.set(result.getUuid());
+        writeBeforeMethodFixture();
+    }
+
+    private void addTestMethodToGroupsConfiguration(final ITestNGMethod testMethod, final TestResult result) {
+        Arrays.stream(testMethod.getGroups()).forEach(
+            group -> addTestMethodToGroupConfiguration(result, group)
+        );
+    }
+
+    private void addTestMethodToGroupConfiguration(final TestResult result, final String group) {
+        if (Objects.isNull(groupTestMethods.get(group))) {
+            groupTestMethods.put(group, new HashSet<>());
+        }
+        groupTestMethods.get(group).add(result.getUuid());
+    }
+
+    private void addTestMethodToClassConfiguration(final ITestNGMethod testMethod, final TestResult result) {
+        if (Objects.isNull(classTestMethods.get(testMethod.getTestClass()))) {
+            classTestMethods.put(testMethod.getTestClass(), new HashSet<>());
+        }
+        classTestMethods.get(testMethod.getTestClass()).add(result.getUuid());
+    }
+
+    private void addTestMethodToTestCofiguration(final ITestContext context, final TestResult result) {
+        if (Objects.isNull(testTestMethods.get(context))) {
+            testTestMethods.put(context, new HashSet<>());
+        }
+        testTestMethods.get(context).add(result.getUuid());
+    }
+
+    private void beforeGroupsConfiguration(final ITestNGMethod testMethod, final TestResult result) {
+        Arrays.stream(testMethod.getGroups()).forEach(
+            group -> addGroupToGroupsConfiguration(result, group)
+        );
+    }
+
+    private void addGroupToGroupsConfiguration(final TestResult result, final String group) {
+        if (Objects.isNull(groupBeforeConfigurations.get(group))) {
+            groupBeforeConfigurations.put(group, new HashSet<>());
+        }
+        groupBeforeConfigurations.get(group).add(result.getUuid());
+    }
+
+    private void beforeTestConfiguration(final ITestContext context, final TestResult result) {
+        if (Objects.isNull(testBeforeConfigurations.get(context))) {
+            testBeforeConfigurations.put(context, new HashSet<>());
+        }
+        testBeforeConfigurations.get(context).add(result.getUuid());
+    }
+
     @Override
-    public void beforeInvocation(final IInvokedMethod method, final ITestResult testResult) {
+    public void afterInvocation(final IInvokedMethod method, final ITestResult testResult) {
         //do nothing
     }
 
     @Override
     public void afterInvocation(final IInvokedMethod method, final ITestResult testResult,
                                 final ITestContext context) {
+        updateAfterExecution(testResult);
+
+        final ITestNGMethod testMethod = method.getTestMethod();
+        if (isSetUpConfiguration(testMethod)) {
+            lifecycle.stopTest();
+        } else {
+            lifecycle.currentTest().ifPresent(current -> {
+                updateAfterFixtures(context, testMethod);
+                lifecycle.stopTest();
+                lifecycle.writeTest(current.getUuid());
+            });
+        }
+    }
+
+    private void updateAfterFixtures(final ITestContext context, final ITestNGMethod testMethod) {
+        if (testMethod.isAfterSuiteConfiguration()) {
+            suiteTestMethods.get(context.getSuite()).forEach(
+                uuid -> lifecycle.updateTest(dependsOn(uuid))
+            );
+        } else if (testMethod.isAfterTestConfiguration()) {
+            testTestMethods.get(context).forEach(
+                uuid -> lifecycle.updateTest(dependsOn(uuid))
+            );
+        } else if (testMethod.isAfterClassConfiguration()) {
+            classTestMethods.get(testMethod.getTestClass()).forEach(
+                uuid -> lifecycle.updateTest(dependsOn(uuid))
+            );
+        } else if (testMethod.isAfterGroupsConfiguration()) {
+            Arrays.stream(testMethod.getGroups()).forEach(
+                group -> groupTestMethods.get(group).forEach(
+                    uuid -> lifecycle.updateTest(dependsOn(uuid))
+                )
+            );
+        } else if (testMethod.isAfterMethodConfiguration()) {
+            lifecycle.updateTest(dependsOn(currentTest.get()));
+        }
+    }
+
+    private void updateAfterExecution(final ITestResult testResult) {
         lifecycle.updateTest(r -> r.setStage(Stage.FINISHED));
         if (testResult.isSuccess()) {
             lifecycle.updateTest(r -> r.setStatus(Status.PASSED));
@@ -279,48 +362,6 @@ public class AllureTestNg2 implements ISuiteListener, IClassListener, IInvokedMe
             r.setStatusMessage(throwable.getMessage());
             r.setStatusTrace(ResultsUtils.getStackTraceAsString(throwable));
         }));
-
-        final ITestNGMethod testMethod = method.getTestMethod();
-        if (testMethod.isBeforeSuiteConfiguration()
-                || testMethod.isBeforeTestConfiguration()
-                || testMethod.isBeforeClassConfiguration()
-                || testMethod.isBeforeGroupsConfiguration()
-                || testMethod.isBeforeMethodConfiguration()) {
-            lifecycle.stopTest();
-        } else {
-            lifecycle.currentTest().ifPresent(current -> {
-                if (testMethod.isAfterSuiteConfiguration()) {
-                    suiteTestMethods.get(context.getSuite()).forEach(
-                        uuid -> lifecycle.updateTest(lifecycle.dependsOn(uuid))
-                    );
-                } else if (testMethod.isAfterTestConfiguration()) {
-                    testTestMethods.get(context).forEach(
-                        uuid -> lifecycle.updateTest(lifecycle.dependsOn(uuid))
-                    );
-                } else if (testMethod.isAfterClassConfiguration()) {
-                    classTestMethods.get(testMethod.getTestClass()).forEach(
-                        uuid -> lifecycle.updateTest(lifecycle.dependsOn(uuid))
-                    );
-                } else if (testMethod.isAfterGroupsConfiguration()) {
-                    Arrays.stream(testMethod.getGroups()).forEach(
-                        group -> {
-                            groupTestMethods.get(group).forEach(
-                                uuid -> lifecycle.updateTest(lifecycle.dependsOn(uuid))
-                            );
-                        }
-                    );
-                } else if (testMethod.isAfterMethodConfiguration()) {
-                    lifecycle.updateTest(lifecycle.dependsOn(currentTest.get()));
-                }
-                lifecycle.stopTest();
-                lifecycle.writeTest(current.getUuid());
-            });
-        }
-    }
-
-    @Override
-    public void afterInvocation(final IInvokedMethod method, final ITestResult testResult) {
-        //do nothing
     }
 
     private TestResult getResult(final ITestNGMethod method) {
@@ -386,7 +427,7 @@ public class AllureTestNg2 implements ISuiteListener, IClassListener, IInvokedMe
         }
     }
 
-    protected String getHistoryId(final ITestNGMethod method, final Set<Parameter> parameters) {
+    private String getHistoryId(final ITestNGMethod method, final Set<Parameter> parameters) {
         final MessageDigest digest = getMessageDigest();
         final String testClassName = method.getTestClass().getName();
         final String methodName = method.getMethodName();
