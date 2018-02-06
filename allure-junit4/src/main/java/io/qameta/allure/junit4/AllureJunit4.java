@@ -12,6 +12,7 @@ import io.qameta.allure.model.Link;
 import io.qameta.allure.model.Stage;
 import io.qameta.allure.model.Status;
 import io.qameta.allure.model.TestResult;
+import io.qameta.allure.model.TestResultType;
 import io.qameta.allure.util.ResultsUtils;
 import org.junit.Ignore;
 import org.junit.runner.Description;
@@ -285,6 +286,7 @@ public class AllureJunit4 extends RunListener {
 
         final TestResult testResult = new TestResult()
                 .setUuid(uuid)
+                .setType(TestResultType.TEST)
                 .setStage(Stage.RUNNING)
                 .setHistoryId(getHistoryId(description))
                 .setName(name)

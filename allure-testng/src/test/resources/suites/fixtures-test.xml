@@ -4,11 +4,7 @@
 <suite name="Test suite 7">
     <test name="Test tag 7">
         <classes>
-            <class name="io.qameta.allure.testng.samples.TestsWithSteps" >
-                <methods>
-                    <include name="testWithOneStep"/>
-                </methods>
-            </class>
+            <class name="io.qameta.allure.testng.samples.TestsWithFixtures"/>
         </classes>
     </test>
 </suite>

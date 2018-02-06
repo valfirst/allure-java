@@ -62,6 +62,15 @@ public class Lifecycle {
         }
     }
 
+    public synchronized void updateTest(final String uuid, final Consumer<TestResult> updateFunction) {
+        final TestResult result = results.get(uuid);
+        if (!Objects.isNull(result)) {
+            updateFunction.accept(result);
+        } else {
+            LOGGER.error("Could not update test: there is no test run at the moment");
+        }
+    }
+
     public synchronized void stopTest() {
         final Optional<TestResult> current = currentTest();
         if (current.isPresent()) {
@@ -75,7 +84,10 @@ public class Lifecycle {
 
     public synchronized void writeTest(final String uuid) {
         Objects.requireNonNull(uuid, "Uuid should not be null value");
-        Optional.ofNullable(results.remove(uuid)).ifPresent(writer::writeResult);
+        Optional.ofNullable(results.remove(uuid)).ifPresent(result -> {
+            System.out.println("writer: " + result);
+            writer.writeResult(result);
+        });
     }
 
     public synchronized void startStep(final StepResult result) {
