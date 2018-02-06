@@ -3,7 +3,9 @@ package io.qameta.allure.testng;
 import io.qameta.allure.Allure;
 import io.qameta.allure.Epic;
 import io.qameta.allure.Feature;
+import io.qameta.allure.Flaky;
 import io.qameta.allure.Lifecycle;
+import io.qameta.allure.Muted;
 import io.qameta.allure.Owner;
 import io.qameta.allure.Severity;
 import io.qameta.allure.Story;
@@ -25,6 +27,7 @@ import org.testng.ISuite;
 import org.testng.ISuiteListener;
 import org.testng.ITestClass;
 import org.testng.ITestContext;
+import org.testng.ITestListener;
 import org.testng.ITestNGMethod;
 import org.testng.ITestResult;
 import org.testng.internal.ConstructorOrMethod;
@@ -62,8 +65,11 @@ import static java.util.stream.IntStream.range;
 /**
  * @author charlie (Dmitry Baev).
  */
-@SuppressWarnings({"PMD.ExcessiveImports", "PMD.GodClass", "PMD.TooManyMethods", "BooleanExpressionComplexity"})
-public class AllureTestNg2 implements ISuiteListener, IClassListener, IInvokedMethodListener2, IExecutionListener {
+@SuppressWarnings({"PMD.ExcessiveImports", "PMD.GodClass",
+        "PMD.TooManyMethods", "PMD.ExcessiveClassLength",
+        "BooleanExpressionComplexity"})
+public class AllureTestNg2 implements ISuiteListener, ITestListener, IClassListener,
+        IInvokedMethodListener2, IExecutionListener {
 
     private static final String MD_5 = "md5";
 
@@ -108,13 +114,23 @@ public class AllureTestNg2 implements ISuiteListener, IClassListener, IInvokedMe
     @Override
     public void onStart(final ISuite suite) {
         suiteBeforeConfigurations.put(suite, new HashSet<>());
-        suiteTestMethods.put(suite, new HashSet<>());
+        //suiteTestMethods.put(suite, new HashSet<>());
+    }
+
+    @Override
+    public void onStart(final ITestContext context) {
+        suiteTestMethods.put(context.getSuite(), new HashSet<>());
     }
 
     @Override
     public void onFinish(final ISuite suite) {
         writeBeforeSuiteFixture(suite);
         writeBeforeTestFixtures(suite);
+    }
+
+    @Override
+    public void onFinish(final ITestContext context) {
+        //do nothing
     }
 
     @Override
@@ -313,13 +329,16 @@ public class AllureTestNg2 implements ISuiteListener, IClassListener, IInvokedMe
     @Override
     public void afterInvocation(final IInvokedMethod method, final ITestResult testResult,
                                 final ITestContext context) {
-        updateAfterExecution(testResult);
+        lifecycle.updateTest(r -> r.setStage(Stage.FINISHED));
 
         final ITestNGMethod testMethod = method.getTestMethod();
+
         if (isSetUpConfiguration(testMethod)) {
+            updateExecution(testResult);
             lifecycle.stopTest();
-        } else {
+        } else if (isTearDownConfiguration(testMethod)) {
             lifecycle.currentTest().ifPresent(current -> {
+                updateExecution(testResult);
                 updateAfterFixtures(context, testMethod);
                 lifecycle.stopTest();
                 lifecycle.writeTest(current.getUuid());
@@ -351,17 +370,60 @@ public class AllureTestNg2 implements ISuiteListener, IClassListener, IInvokedMe
         }
     }
 
-    private void updateAfterExecution(final ITestResult testResult) {
-        lifecycle.updateTest(r -> r.setStage(Stage.FINISHED));
+    private void updateExecution(final ITestResult testResult) {
         if (testResult.isSuccess()) {
             lifecycle.updateTest(r -> r.setStatus(Status.PASSED));
         } else {
             lifecycle.updateTest(r -> r.setStatus(getStatus(testResult.getThrowable()).orElse(Status.BROKEN)));
         }
+        lifecycle.updateTest(r -> r.setFlaky(isFlaky(testResult)));
+        lifecycle.updateTest(r -> r.setMuted(isMuted(testResult)));
         Optional.ofNullable(testResult.getThrowable()).ifPresent(throwable -> lifecycle.updateTest(r -> {
             r.setStatusMessage(throwable.getMessage());
             r.setStatusTrace(ResultsUtils.getStackTraceAsString(throwable));
         }));
+    }
+
+    @Override
+    public void onTestStart(final ITestResult result) {
+        //do nothing
+    }
+
+    @Override
+    public void onTestSuccess(final ITestResult result) {
+        lifecycle.currentTest().ifPresent(current -> {
+            updateExecution(result);
+            lifecycle.stopTest();
+            lifecycle.writeTest(current.getUuid());
+        });
+    }
+
+    @Override
+    public void onTestFailure(final ITestResult result) {
+        lifecycle.currentTest().ifPresent(current -> {
+            updateExecution(result);
+            lifecycle.stopTest();
+            lifecycle.writeTest(current.getUuid());
+        });
+    }
+
+    @Override
+    public void onTestSkipped(final ITestResult result) {
+        lifecycle.currentTest().ifPresent(current -> {
+            updateExecution(result);
+            lifecycle.updateTest(r -> r.setStatus(Status.SKIPPED));
+            lifecycle.stopTest();
+            lifecycle.writeTest(current.getUuid());
+        });
+    }
+
+    @Override
+    public void onTestFailedButWithinSuccessPercentage(final ITestResult result) {
+        lifecycle.currentTest().ifPresent(current -> {
+            updateExecution(result);
+            lifecycle.stopTest();
+            lifecycle.writeTest(current.getUuid());
+        });
     }
 
     private TestResult getResult(final ITestNGMethod method) {
@@ -369,6 +431,7 @@ public class AllureTestNg2 implements ISuiteListener, IClassListener, IInvokedMe
                 .setUuid(UUID.randomUUID().toString())
                 .setName(getMethodName(method))
                 .setDescription(method.getDescription());
+
         if (method.isTest()) {
             result.setType(TestResultType.TEST);
         }
@@ -528,6 +591,26 @@ public class AllureTestNg2 implements ISuiteListener, IClassListener, IInvokedMe
         }
         return getAnnotationsOnClass(result, clazz).stream()
                 .map(extractor);
+    }
+
+    private boolean isFlaky(final ITestResult result) {
+        return hasAnnotation(result, Flaky.class);
+    }
+
+    private boolean isMuted(final ITestResult result) {
+        return hasAnnotation(result, Muted.class);
+    }
+
+    private boolean hasAnnotation(final ITestResult result, final Class<? extends Annotation> clazz) {
+        return hasAnnotationOnMethod(result, clazz) || hasAnnotationOnClass(result, clazz);
+    }
+
+    private boolean hasAnnotationOnClass(final ITestResult result, final Class<? extends Annotation> clazz) {
+        return !getAnnotationsOnClass(result, clazz).isEmpty();
+    }
+
+    private boolean hasAnnotationOnMethod(final ITestResult result, final Class<? extends Annotation> clazz) {
+        return !getAnnotationsOnMethod(result, clazz).isEmpty();
     }
 
     private <T extends Annotation> List<T> getAnnotationsOnMethod(final ITestResult result, final Class<T> clazz) {

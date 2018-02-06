@@ -8,6 +8,6 @@ import org.testng.annotations.BeforeClass;
 public class ClassFixturesInherited {
 
     @BeforeClass
-    public void beforeClass3() throws Exception {
+    public void beforeInInherited() throws Exception {
     }
 }
