@@ -30,6 +30,8 @@ import org.testng.ITestContext;
 import org.testng.ITestListener;
 import org.testng.ITestNGMethod;
 import org.testng.ITestResult;
+import org.testng.annotations.AfterGroups;
+import org.testng.annotations.BeforeGroups;
 import org.testng.internal.ConstructorOrMethod;
 import org.testng.xml.XmlSuite;
 import org.testng.xml.XmlTest;
@@ -39,6 +41,7 @@ import java.lang.reflect.Executable;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -370,9 +373,20 @@ public class AllureTestNg2 implements ISuiteListener, ITestListener, IClassListe
         }
     }
 
-    private String[] getTestGroups(ITestNGMethod testMethod) {
-        //TODO: Get groups in case of using value() method (ex. @BeforeGroup("A"))
-        return testMethod.getGroups();
+    private String[] getTestGroups(final ITestNGMethod testMethod) {
+        final String[] groups = testMethod.getGroups();
+        if (groups == null || groups.length == 0) {
+            final List<String> values = new ArrayList<>();
+            if (testMethod.isBeforeGroupsConfiguration()) {
+                Optional.ofNullable(testMethod.getConstructorOrMethod().getMethod().getAnnotation(BeforeGroups.class))
+                        .ifPresent(beforeGroups -> values.addAll(Arrays.asList(beforeGroups.value())));
+            } else if (testMethod.isAfterGroupsConfiguration()) {
+                Optional.ofNullable(testMethod.getConstructorOrMethod().getMethod().getAnnotation(AfterGroups.class))
+                        .ifPresent(afterGroups -> values.addAll(Arrays.asList(afterGroups.value())));
+            }
+            return values.toArray(new String[] {});
+        }
+        return groups;
     }
 
     private void updateExecution(final ITestResult testResult) {
@@ -495,7 +509,7 @@ public class AllureTestNg2 implements ISuiteListener, ITestListener, IClassListe
         }
     }
 
-    private String getHistoryId(final ITestNGMethod method, final Set<Parameter> parameters) {
+    protected String getHistoryId(final ITestNGMethod method, final Set<Parameter> parameters) {
         final MessageDigest digest = getMessageDigest();
         final String testClassName = method.getTestClass().getName();
         final String methodName = method.getMethodName();
