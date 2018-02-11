@@ -3,6 +3,7 @@ schema
 build
 out
 /*/allure-results/
+/examples/*/allure-results/
 
 #IDEA Files
 .idea
