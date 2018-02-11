@@ -23,6 +23,7 @@ import java.util.function.Consumer;
 
 import static io.qameta.allure.util.ResultsUtils.getStackTraceAsString;
 import static io.qameta.allure.util.ResultsUtils.getStatus;
+import static java.lang.String.format;
 
 /**
  * @author charlie (Dmitry Baev).
@@ -67,7 +68,7 @@ public class Lifecycle {
         if (!Objects.isNull(result)) {
             updateFunction.accept(result);
         } else {
-            LOGGER.error("Could not update test: there is no test run at the moment");
+            LOGGER.error(format("Could not update test: there is no test (uuid: %s) run at the moment", uuid));
         }
     }
 
@@ -84,10 +85,9 @@ public class Lifecycle {
 
     public synchronized void writeTest(final String uuid) {
         Objects.requireNonNull(uuid, "Uuid should not be null value");
-        Optional.ofNullable(results.remove(uuid)).ifPresent(result -> {
-            System.out.println("writer: " + result);
-            writer.writeResult(result);
-        });
+        Optional.ofNullable(results.remove(uuid)).ifPresent(
+            result -> writer.writeResult(result)
+        );
     }
 
     public synchronized void startStep(final StepResult result) {
@@ -125,7 +125,7 @@ public class Lifecycle {
         final Optional<Executable> executable = currentStepOrTest();
         if (executable.isPresent()) {
             final String uuid = UUID.randomUUID().toString();
-            final String source = String.format("%s.%s", uuid, extension);
+            final String source = format("%s.%s", uuid, extension);
             final Attachment attachment = new Attachment()
                     .setName(name)
                     .setContentType(contentType)
