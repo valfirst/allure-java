@@ -30,7 +30,7 @@ public class FileSystemResultsWriter implements ResultsWriter {
 
     @Override
     public void writeResult(final TestResult result) {
-        final String fileName = String.format("%s.json", result.getUuid());
+        final String fileName = String.format("%s-allure.json", result.getUuid());
         try (OutputStream os = newOutputStream(createDirectories(outputDirectory).resolve(fileName))) {
             mapper.writeValue(os, result);
         } catch (IOException e) {

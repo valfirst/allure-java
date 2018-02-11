@@ -124,7 +124,7 @@ public class Lifecycle {
         final Optional<Executable> executable = currentStepOrTest();
         if (executable.isPresent()) {
             final String uuid = UUID.randomUUID().toString();
-            final String source = format("%s.%s", uuid, extension);
+            final String source = format("%s-attachment.%s", uuid, extension);
             final Attachment attachment = new Attachment()
                     .setName(name)
                     .setContentType(contentType)
