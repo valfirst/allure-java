@@ -114,23 +114,24 @@ public class FeatureCombinationsTest {
                 .hasSize(1)
                 .extracting(TestResult::getStatus)
                 .containsExactly(Status.BROKEN);
-        assertThat(testResults.get(0).getStatusDetails())
-                .hasFieldOrPropertyWithValue("message","Hello, everybody")
-                .hasFieldOrProperty("trace");
+        assertThat(testResults.get(0))
+                .extracting(TestResult::getStatusMessage)
+                .contains("Hello, everybody");
     }
 
     @Test
     @DisplayName("Broken test without message")
     public void shouldProcessBrokenWithoutMessageTest() throws Exception {
         core.run(Request.aClass(BrokenWithoutMessageTest.class));
-        List<TestResult> testResults = results.getTestResults();
+        List<TestResult> testResults = results.getAllTestResults();
         assertThat(testResults)
                 .hasSize(1)
                 .extracting(TestResult::getStatus)
                 .containsExactly(Status.BROKEN);
-        assertThat(testResults.get(0).getStatusDetails())
-                .hasFieldOrPropertyWithValue("message","java.lang.RuntimeException")
-                .hasFieldOrProperty("trace");
+        assertThat(testResults.get(0).getStatusMessage())
+                .isNullOrEmpty();
+        assertThat(testResults.get(0).getStatusTrace())
+                .startsWith("java.lang.RuntimeException");
     }
 
     @Test
@@ -193,7 +194,7 @@ public class FeatureCombinationsTest {
     @DisplayName("Test with timeout and steps")
     public void testWithTimeoutAndSteps() {
         core.run(Request.aClass(TestWithTimeout.class));
-        List<TestResult> testResults = results.getTestResults();
+        List<TestResult> testResults = results.getAllTestResults();
         assertThat(testResults)
                 .hasSize(1)
                 .flatExtracting(TestResult::getSteps)

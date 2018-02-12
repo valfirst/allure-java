@@ -12,7 +12,6 @@ import org.aspectj.lang.reflect.MethodSignature;
 
 import java.util.Objects;
 import java.util.Optional;
-import java.util.UUID;
 
 import static io.qameta.allure.util.AspectUtils.getParameters;
 import static io.qameta.allure.util.AspectUtils.getParametersMap;
@@ -33,7 +32,6 @@ public class StepsAspects {
         final MethodSignature methodSignature = (MethodSignature) joinPoint.getSignature();
         final Step step = methodSignature.getMethod().getAnnotation(Step.class);
 
-        final String uuid = UUID.randomUUID().toString();
         final String name = Optional.of(step.value())
                 .filter(StringUtils::isNoneEmpty)
                 .map(value -> processNameTemplate(value, getParametersMap(methodSignature, joinPoint.getArgs())))
