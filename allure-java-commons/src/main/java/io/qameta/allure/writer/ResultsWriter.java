@@ -1,6 +1,6 @@
 package io.qameta.allure.writer;
 
-import io.qameta.allure.model.TestResult;
+import io.qameta.allure.model3.TestResult;
 
 /**
  * @author charlie (Dmitry Baev).

@@ -1,8 +1,8 @@
 package io.qameta.allure.spock
 
-import io.qameta.allure.model.Stage
-import io.qameta.allure.model.Status
-import io.qameta.allure.model.TestResult
+import io.qameta.allure.model3.Stage
+import io.qameta.allure.model3.Status
+import io.qameta.allure.model3.TestResult
 import io.qameta.allure.spock.samples.BrokenTest
 import io.qameta.allure.spock.samples.FailedTest
 import io.qameta.allure.spock.samples.OneTest

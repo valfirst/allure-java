@@ -1,7 +1,7 @@
 package io.qameta.allure;
 
-import io.qameta.allure.model.Label;
-import io.qameta.allure.model.TestResult;
+import io.qameta.allure.model3.Label;
+import io.qameta.allure.model3.TestResult;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -54,9 +54,9 @@ public class AllureTest {
     @SuppressWarnings("unchecked")
     @Test
     public void shouldAddLinks() throws Exception {
-        io.qameta.allure.model.Link first = randomLink();
-        io.qameta.allure.model.Link second = randomLink();
-        io.qameta.allure.model.Link third = randomLink();
+        io.qameta.allure.model3.Link first = randomLink();
+        io.qameta.allure.model3.Link second = randomLink();
+        io.qameta.allure.model3.Link third = randomLink();
 
         Allure.addLinks(first, second);
 

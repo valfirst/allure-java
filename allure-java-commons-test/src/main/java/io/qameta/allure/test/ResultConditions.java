@@ -1,8 +1,8 @@
 package io.qameta.allure.test;
 
-import io.qameta.allure.model.Executable;
-import io.qameta.allure.model.Stage;
-import io.qameta.allure.model.TestResult;
+import io.qameta.allure.model3.Executable;
+import io.qameta.allure.model3.Stage;
+import io.qameta.allure.model3.TestResult;
 import org.assertj.core.api.Condition;
 
 import java.util.List;

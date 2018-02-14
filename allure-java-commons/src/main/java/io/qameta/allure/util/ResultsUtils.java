@@ -6,9 +6,9 @@ import io.qameta.allure.Owner;
 import io.qameta.allure.Severity;
 import io.qameta.allure.SeverityLevel;
 import io.qameta.allure.Story;
-import io.qameta.allure.model.Label;
-import io.qameta.allure.model.Link;
-import io.qameta.allure.model.Status;
+import io.qameta.allure.model3.Label;
+import io.qameta.allure.model3.Link;
+import io.qameta.allure.model3.Status;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

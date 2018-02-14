@@ -1,4 +1,4 @@
-package io.qameta.allure.model;
+package io.qameta.allure.model3;
 
 import com.fasterxml.jackson.annotation.JsonValue;
 

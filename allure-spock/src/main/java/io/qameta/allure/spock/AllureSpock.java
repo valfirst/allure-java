@@ -12,11 +12,11 @@ import io.qameta.allure.Owner;
 import io.qameta.allure.Severity;
 import io.qameta.allure.Story;
 import io.qameta.allure.TmsLink;
-import io.qameta.allure.model.Label;
-import io.qameta.allure.model.Parameter;
-import io.qameta.allure.model.Stage;
-import io.qameta.allure.model.Status;
-import io.qameta.allure.model.TestResult;
+import io.qameta.allure.model3.Label;
+import io.qameta.allure.model3.Parameter;
+import io.qameta.allure.model3.Stage;
+import io.qameta.allure.model3.Status;
+import io.qameta.allure.model3.TestResult;
 import io.qameta.allure.util.ResultsUtils;
 import org.junit.runner.Description;
 import org.spockframework.runtime.AbstractRunListener;
@@ -220,7 +220,7 @@ public class AllureSpock extends AbstractRunListener implements IGlobalExtension
         return !getFeatureAnnotations(iteration, clazz).isEmpty();
     }
 
-    private Set<io.qameta.allure.model.Link> getLinks(final IterationInfo iteration) {
+    private Set<io.qameta.allure.model3.Link> getLinks(final IterationInfo iteration) {
         return Stream.of(
                 getSpecAnnotations(iteration, Link.class).stream().map(ResultsUtils::createLink),
                 getFeatureAnnotations(iteration, Link.class).stream().map(ResultsUtils::createLink),

@@ -18,7 +18,7 @@ public class ResultsUtilsTest {
 
     @Test
     public void shouldCreateLink() throws Exception {
-        io.qameta.allure.model.Link actual = createLink("a", "b", "c", "d");
+        io.qameta.allure.model3.Link actual = createLink("a", "b", "c", "d");
         assertThat(actual)
                 .isNotNull()
                 .hasFieldOrPropertyWithValue("name", "a")
@@ -28,7 +28,7 @@ public class ResultsUtilsTest {
 
     @Test
     public void shouldCreateLinkFromAnnotation() throws Exception {
-        io.qameta.allure.model.Link actual = createLink(new Link() {
+        io.qameta.allure.model3.Link actual = createLink(new Link() {
             @Override
             public Class<? extends Annotation> annotationType() {
                 return Link.class;
@@ -63,7 +63,7 @@ public class ResultsUtilsTest {
 
     @Test
     public void shouldCreateIssueLink() throws Exception {
-        io.qameta.allure.model.Link actual = createIssueLink("issue_link");
+        io.qameta.allure.model3.Link actual = createIssueLink("issue_link");
         assertThat(actual)
                 .isNotNull()
                 .hasFieldOrPropertyWithValue("name", "issue_link")
@@ -73,7 +73,7 @@ public class ResultsUtilsTest {
 
     @Test
     public void shouldCreateIssueLinkFromAnnotation() throws Exception {
-        io.qameta.allure.model.Link actual = createLink(new Issue() {
+        io.qameta.allure.model3.Link actual = createLink(new Issue() {
             @Override
             public Class<? extends Annotation> annotationType() {
                 return Issue.class;
@@ -93,7 +93,7 @@ public class ResultsUtilsTest {
 
     @Test
     public void shouldCreateTmsLink() throws Exception {
-        io.qameta.allure.model.Link actual = createTmsLink("tms_link");
+        io.qameta.allure.model3.Link actual = createTmsLink("tms_link");
         assertThat(actual)
                 .isNotNull()
                 .hasFieldOrPropertyWithValue("name", "tms_link")
@@ -103,7 +103,7 @@ public class ResultsUtilsTest {
 
     @Test
     public void shouldCreateTmsLinkFromAnnotation() throws Exception {
-        io.qameta.allure.model.Link actual = createLink(new TmsLink() {
+        io.qameta.allure.model3.Link actual = createLink(new TmsLink() {
             @Override
             public Class<? extends Annotation> annotationType() {
                 return TmsLink.class;

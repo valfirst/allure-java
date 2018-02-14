@@ -4,7 +4,7 @@ import io.qameta.allure.Lifecycle;
 import io.qameta.allure.aspect.AttachmentsAspects;
 import io.qameta.allure.aspect.StepsAspects;
 import io.qameta.allure.junit5.features.*;
-import io.qameta.allure.model.*;
+import io.qameta.allure.model3.*;
 import io.qameta.allure.test.InMemoryResultsWriter;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.BeforeEach;

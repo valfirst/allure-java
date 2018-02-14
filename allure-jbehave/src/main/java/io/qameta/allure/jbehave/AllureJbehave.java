@@ -2,11 +2,11 @@ package io.qameta.allure.jbehave;
 
 import io.qameta.allure.Allure;
 import io.qameta.allure.Lifecycle;
-import io.qameta.allure.model.Label;
-import io.qameta.allure.model.Stage;
-import io.qameta.allure.model.Status;
-import io.qameta.allure.model.StepResult;
-import io.qameta.allure.model.TestResult;
+import io.qameta.allure.model3.Label;
+import io.qameta.allure.model3.Stage;
+import io.qameta.allure.model3.Status;
+import io.qameta.allure.model3.StepResult;
+import io.qameta.allure.model3.TestResult;
 import io.qameta.allure.util.ResultsUtils;
 import org.jbehave.core.model.Story;
 import org.jbehave.core.reporters.NullStoryReporter;

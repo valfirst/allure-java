@@ -1,8 +1,8 @@
 package io.qameta.allure;
 
-import io.qameta.allure.model.Attachment;
-import io.qameta.allure.model.TestResult;
-import io.qameta.allure.model.TestResultType;
+import io.qameta.allure.model3.Attachment;
+import io.qameta.allure.model3.TestResult;
+import io.qameta.allure.model3.TestResultType;
 import io.qameta.allure.test.InMemoryResultsWriter;
 import io.qameta.allure.testdata.TestData;
 import io.qameta.allure.writer.AttachmentContentWriter;

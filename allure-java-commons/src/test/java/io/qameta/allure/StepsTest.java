@@ -1,10 +1,10 @@
 package io.qameta.allure;
 
 import io.qameta.allure.aspect.StepsAspects;
-import io.qameta.allure.model.Parameter;
-import io.qameta.allure.model.StepResult;
-import io.qameta.allure.model.TestResult;
-import io.qameta.allure.model.TestResultType;
+import io.qameta.allure.model3.Parameter;
+import io.qameta.allure.model3.StepResult;
+import io.qameta.allure.model3.TestResult;
+import io.qameta.allure.model3.TestResultType;
 import io.qameta.allure.test.InMemoryResultsWriter;
 import io.qameta.allure.testdata.DummyCard;
 import io.qameta.allure.testdata.DummyEmail;

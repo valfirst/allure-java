@@ -1,8 +1,8 @@
 package io.qameta.allure.aspect;
 
 import io.qameta.allure.Lifecycle;
-import io.qameta.allure.model.StepResult;
-import io.qameta.allure.model.TestResult;
+import io.qameta.allure.model3.StepResult;
+import io.qameta.allure.model3.TestResult;
 import io.qameta.allure.test.InMemoryResultsWriter;
 import org.junit.Before;
 import org.junit.Test;

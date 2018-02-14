@@ -1,7 +1,7 @@
 package io.qameta.allure.aspect;
 
-import io.qameta.allure.model.Label;
-import io.qameta.allure.model.Link;
+import io.qameta.allure.model3.Label;
+import io.qameta.allure.model3.Link;
 import io.qameta.allure.util.ResultsUtils;
 import ru.yandex.qatools.allure.annotations.Features;
 import ru.yandex.qatools.allure.annotations.Issue;

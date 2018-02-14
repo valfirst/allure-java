@@ -1,4 +1,4 @@
-package io.qameta.allure.model;
+package io.qameta.allure.model3;
 
 import com.fasterxml.jackson.annotation.JsonValue;
 
@@ -7,18 +7,18 @@ import java.io.Serializable;
 /**
  * @author charlie (Dmitry Baev).
  */
-public enum TestResultType implements Serializable {
+public enum Status implements Serializable {
 
-    TEST("test"),
-    SET_UP("setUp"),
-    TEAR_DOWN("tearDown"),
-    DATA_GENERATOR("dataGenerator");
+    FAILED("failed"),
+    BROKEN("broken"),
+    PASSED("passed"),
+    SKIPPED("skipped");
 
     private static final long serialVersionUID = 1L;
 
     private final String value;
 
-    TestResultType(final String v) {
+    Status(final String v) {
         value = v;
     }
 

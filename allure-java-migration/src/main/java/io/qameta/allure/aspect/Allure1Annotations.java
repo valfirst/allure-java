@@ -1,9 +1,9 @@
 package io.qameta.allure.aspect;
 
-import io.qameta.allure.model.Label;
-import io.qameta.allure.model.Link;
-import io.qameta.allure.model.Parameter;
-import io.qameta.allure.model.TestResult;
+import io.qameta.allure.model3.Label;
+import io.qameta.allure.model3.Link;
+import io.qameta.allure.model3.Parameter;
+import io.qameta.allure.model3.TestResult;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.aspectj.lang.reflect.MethodSignature;
 import ru.yandex.qatools.allure.annotations.Description;

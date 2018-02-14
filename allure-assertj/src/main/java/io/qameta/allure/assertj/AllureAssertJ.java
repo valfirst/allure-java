@@ -2,8 +2,8 @@ package io.qameta.allure.assertj;
 
 import io.qameta.allure.Allure;
 import io.qameta.allure.Lifecycle;
-import io.qameta.allure.model.Status;
-import io.qameta.allure.model.StepResult;
+import io.qameta.allure.model3.Status;
+import io.qameta.allure.model3.StepResult;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;

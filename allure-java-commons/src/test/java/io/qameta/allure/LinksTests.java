@@ -1,7 +1,7 @@
 package io.qameta.allure;
 
 import io.qameta.allure.util.ResultsUtils;
-import io.qameta.allure.model.Link;
+import io.qameta.allure.model3.Link;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;

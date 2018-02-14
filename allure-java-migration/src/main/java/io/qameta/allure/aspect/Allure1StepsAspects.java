@@ -2,9 +2,9 @@ package io.qameta.allure.aspect;
 
 import io.qameta.allure.Allure;
 import io.qameta.allure.Lifecycle;
-import io.qameta.allure.model.Parameter;
-import io.qameta.allure.model.Status;
-import io.qameta.allure.model.StepResult;
+import io.qameta.allure.model3.Parameter;
+import io.qameta.allure.model3.Status;
+import io.qameta.allure.model3.StepResult;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.AfterThrowing;

@@ -1,7 +1,7 @@
 package io.qameta.allure.listener;
 
-import io.qameta.allure.model.StepResult;
-import io.qameta.allure.model.TestResult;
+import io.qameta.allure.model3.StepResult;
+import io.qameta.allure.model3.TestResult;
 
 import java.util.List;
 

@@ -1,6 +1,6 @@
 package io.qameta.allure.testng;
 
-import io.qameta.allure.model.Parameter;
+import io.qameta.allure.model3.Parameter;
 import org.testng.ITestNGMethod;
 
 import java.util.Set;

@@ -3,7 +3,7 @@ package io.qameta.allure.aspect;
 import io.qameta.allure.Allure;
 import io.qameta.allure.Lifecycle;
 import io.qameta.allure.Step;
-import io.qameta.allure.model.StepResult;
+import io.qameta.allure.model3.StepResult;
 import org.apache.commons.lang3.StringUtils;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;

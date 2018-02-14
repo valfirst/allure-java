@@ -2,7 +2,7 @@ package io.qameta.allure.writer;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.qameta.allure.model.TestResult;
+import io.qameta.allure.model3.TestResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

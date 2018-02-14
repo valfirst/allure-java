@@ -26,10 +26,10 @@ import gherkin.pickles.PickleTable;
 import gherkin.pickles.PickleTag;
 import io.qameta.allure.Allure;
 import io.qameta.allure.Lifecycle;
-import io.qameta.allure.model.Parameter;
-import io.qameta.allure.model.Status;
-import io.qameta.allure.model.TestResult;
-import io.qameta.allure.model.StepResult;
+import io.qameta.allure.model3.Parameter;
+import io.qameta.allure.model3.Status;
+import io.qameta.allure.model3.TestResult;
+import io.qameta.allure.model3.StepResult;
 import io.qameta.allure.util.ResultsUtils;
 
 import java.io.ByteArrayInputStream;

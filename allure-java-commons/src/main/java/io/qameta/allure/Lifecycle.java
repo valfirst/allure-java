@@ -1,11 +1,11 @@
 package io.qameta.allure;
 
-import io.qameta.allure.model.Attachment;
-import io.qameta.allure.model.Executable;
-import io.qameta.allure.model.Stage;
-import io.qameta.allure.model.Status;
-import io.qameta.allure.model.StepResult;
-import io.qameta.allure.model.TestResult;
+import io.qameta.allure.model3.Attachment;
+import io.qameta.allure.model3.Executable;
+import io.qameta.allure.model3.Stage;
+import io.qameta.allure.model3.Status;
+import io.qameta.allure.model3.StepResult;
+import io.qameta.allure.model3.TestResult;
 import io.qameta.allure.writer.AttachmentContentWriter;
 import io.qameta.allure.writer.DummyAttachmentContentWriter;
 import io.qameta.allure.writer.ResultsWriter;

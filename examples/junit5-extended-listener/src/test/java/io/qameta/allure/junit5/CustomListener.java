@@ -1,6 +1,6 @@
 package io.qameta.allure.junit5;
 
-import io.qameta.allure.model.Status;
+import io.qameta.allure.model3.Status;
 import org.junit.platform.launcher.TestIdentifier;
 
 /**

@@ -1,4 +1,4 @@
-package io.qameta.allure.model;
+package io.qameta.allure.model3;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -10,11 +10,12 @@ import java.io.Serializable;
  */
 @Data
 @Accessors(chain = true)
-public class Parameter implements Serializable {
+public class Link implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
     protected String name;
-    protected String value;
+    protected String url;
+    protected String type;
 
 }

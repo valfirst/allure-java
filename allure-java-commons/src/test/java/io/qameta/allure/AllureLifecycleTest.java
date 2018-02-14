@@ -1,8 +1,8 @@
 package io.qameta.allure;
 
-import io.qameta.allure.model.StepResult;
-import io.qameta.allure.model.TestResult;
-import io.qameta.allure.model.TestResultType;
+import io.qameta.allure.model3.StepResult;
+import io.qameta.allure.model3.TestResult;
+import io.qameta.allure.model3.TestResultType;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;

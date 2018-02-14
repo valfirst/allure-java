@@ -3,10 +3,10 @@ package io.qameta.allure.junit5;
 import io.qameta.allure.Allure;
 import io.qameta.allure.Lifecycle;
 import io.qameta.allure.Description;
-import io.qameta.allure.model.Label;
-import io.qameta.allure.model.Stage;
-import io.qameta.allure.model.Status;
-import io.qameta.allure.model.TestResult;
+import io.qameta.allure.model3.Label;
+import io.qameta.allure.model3.Stage;
+import io.qameta.allure.model3.Status;
+import io.qameta.allure.model3.TestResult;
 import io.qameta.allure.util.ResultsUtils;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.platform.engine.TestExecutionResult;
@@ -24,9 +24,9 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import static io.qameta.allure.model.Status.FAILED;
-import static io.qameta.allure.model.Status.PASSED;
-import static io.qameta.allure.model.Status.SKIPPED;
+import static io.qameta.allure.model3.Status.FAILED;
+import static io.qameta.allure.model3.Status.PASSED;
+import static io.qameta.allure.model3.Status.SKIPPED;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import static io.qameta.allure.util.ResultsUtils.getStackTraceAsString;

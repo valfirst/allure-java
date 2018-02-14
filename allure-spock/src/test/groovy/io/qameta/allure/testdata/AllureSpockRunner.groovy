@@ -3,7 +3,7 @@ package io.qameta.allure.testdata
 import io.qameta.allure.Lifecycle
 import io.qameta.allure.aspect.AttachmentsAspects
 import io.qameta.allure.aspect.StepsAspects
-import io.qameta.allure.model.TestResult
+import io.qameta.allure.model3.TestResult
 import io.qameta.allure.spock.AllureSpock
 import io.qameta.allure.test.InMemoryResultsWriter
 import org.junit.runner.notification.RunNotifier

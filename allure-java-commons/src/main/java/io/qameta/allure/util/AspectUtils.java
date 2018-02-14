@@ -1,6 +1,6 @@
 package io.qameta.allure.util;
 
-import io.qameta.allure.model.Parameter;
+import io.qameta.allure.model3.Parameter;
 import org.aspectj.lang.reflect.MethodSignature;
 
 import java.util.Arrays;

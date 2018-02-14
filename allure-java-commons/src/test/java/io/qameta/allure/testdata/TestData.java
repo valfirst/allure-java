@@ -1,9 +1,9 @@
 package io.qameta.allure.testdata;
 
-import io.qameta.allure.model.Label;
-import io.qameta.allure.model.Link;
-import io.qameta.allure.model.StepResult;
-import io.qameta.allure.model.TestResult;
+import io.qameta.allure.model3.Label;
+import io.qameta.allure.model3.Link;
+import io.qameta.allure.model3.StepResult;
+import io.qameta.allure.model3.TestResult;
 
 import java.util.UUID;
 

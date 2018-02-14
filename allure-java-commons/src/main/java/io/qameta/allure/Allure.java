@@ -1,6 +1,6 @@
 package io.qameta.allure;
 
-import io.qameta.allure.model.Label;
+import io.qameta.allure.model3.Label;
 import io.qameta.allure.writer.AttachmentContentWriter;
 import io.qameta.allure.writer.FileSystemResultsWriter;
 
@@ -42,7 +42,7 @@ public final class Allure {
         getLifecycle().updateTest(testResult -> testResult.getLabels().addAll(Arrays.asList(labels)));
     }
 
-    public static void addLinks(final io.qameta.allure.model.Link... links) {
+    public static void addLinks(final io.qameta.allure.model3.Link... links) {
         getLifecycle().updateTest(testResult -> testResult.getLinks().addAll(Arrays.asList(links)));
     }
 

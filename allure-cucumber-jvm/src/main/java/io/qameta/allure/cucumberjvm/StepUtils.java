@@ -10,9 +10,9 @@ import gherkin.formatter.model.Step;
 import io.qameta.allure.Allure;
 import io.qameta.allure.AllureLifecycle;
 import io.qameta.allure.util.ResultsUtils;
-import io.qameta.allure.model.Status;
-import io.qameta.allure.model.StatusDetails;
-import io.qameta.allure.model.StepResult;
+import io.qameta.allure.model3.Status;
+import io.qameta.allure.model3.StatusDetails;
+import io.qameta.allure.model3.StepResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
