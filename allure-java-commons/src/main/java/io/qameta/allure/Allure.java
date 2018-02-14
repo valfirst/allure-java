@@ -1,14 +1,21 @@
 package io.qameta.allure;
 
 import io.qameta.allure.model.Label;
+import io.qameta.allure.writer.AttachmentContentWriter;
 import io.qameta.allure.writer.FileSystemResultsWriter;
 
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Supplier;
+
+import static java.util.concurrent.CompletableFuture.supplyAsync;
 
 /**
- * The class contains some useful methods to work with {@link AllureLifecycle}.
+ * The class contains some useful methods to work with {@link Lifecycle}.
  */
 public final class Allure {
 
@@ -51,29 +58,32 @@ public final class Allure {
         Allure.lifecycle = lifecycle;
     }
 
-    /*
+
     public static void addAttachment(final String name, final String content) {
-        getLifecycle().addAttachment(name, TEXT_PLAIN, TXT_EXTENSION, content.getBytes(StandardCharsets.UTF_8));
+        getLifecycle().addAttachment(name, TEXT_PLAIN, TXT_EXTENSION)
+                .withContent(content.getBytes(StandardCharsets.UTF_8));
     }
 
     public static void addAttachment(final String name, final String type, final String content) {
-        getLifecycle().addAttachment(name, type, TXT_EXTENSION, content.getBytes(StandardCharsets.UTF_8));
+        getLifecycle().addAttachment(name, type, TXT_EXTENSION)
+                .withContent(content.getBytes(StandardCharsets.UTF_8));
     }
 
     @SuppressWarnings("PMD.UseObjectForClearerAPI")
     public static void addAttachment(final String name, final String type,
                                      final String content, final String fileExtension) {
-        getLifecycle().addAttachment(name, type, fileExtension, content.getBytes(StandardCharsets.UTF_8));
+        getLifecycle().addAttachment(name, type, fileExtension)
+                .withContent(content.getBytes(StandardCharsets.UTF_8));
     }
 
     public static void addAttachment(final String name, final InputStream content) {
-        getLifecycle().addAttachment(name, null, null, content);
+        getLifecycle().addAttachment(name, null, null).withContent(content);
     }
 
     @SuppressWarnings("PMD.UseObjectForClearerAPI")
     public static void addAttachment(final String name, final String type,
                                      final InputStream content, final String fileExtension) {
-        getLifecycle().addAttachment(name, type, fileExtension, content);
+        getLifecycle().addAttachment(name, type, fileExtension).withContent(content);
     }
 
     public static CompletableFuture<byte[]> addByteAttachmentAsync(
@@ -83,9 +93,8 @@ public final class Allure {
 
     public static CompletableFuture<byte[]> addByteAttachmentAsync(
             final String name, final String type, final String fileExtension, final Supplier<byte[]> body) {
-        final String source = getLifecycle().prepareAttachment(name, type, fileExtension);
-        return supplyAsync(body).whenComplete((result, ex) ->
-                getLifecycle().writeAttachment(source, new ByteArrayInputStream(result)));
+        final AttachmentContentWriter writer = getLifecycle().addAttachment(name, type, fileExtension);
+        return supplyAsync(body).whenComplete((result, ex) -> writer.withContent(result));
     }
 
     public static CompletableFuture<InputStream> addStreamAttachmentAsync(
@@ -95,7 +104,7 @@ public final class Allure {
 
     public static CompletableFuture<InputStream> addStreamAttachmentAsync(
             final String name, final String type, final String fileExtension, final Supplier<InputStream> body) {
-        final String source = lifecycle.prepareAttachment(name, type, fileExtension);
-        return supplyAsync(body).whenComplete((result, ex) -> lifecycle.writeAttachment(source, result));
-    }*/
+        final AttachmentContentWriter writer = getLifecycle().addAttachment(name, type, fileExtension);
+        return supplyAsync(body).whenComplete((result, ex) -> writer.withContent(result));
+    }
 }
