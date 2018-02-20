@@ -244,35 +244,38 @@ public final class ResultsUtils {
         return stringWriter.toString();
     }
 
-//    public static void processDescription(final ClassLoader classLoader, final Method method,
-//                                          final ExecutableItem item) {
-//        if (method.isAnnotationPresent(Description.class)) {
-//            if (method.getAnnotation(Description.class).useJavaDoc()) {
-//                final String name = method.getName();
-//                final List<String> parameterTypes = Stream.of(method.getParameterTypes()).map(Class::getTypeName)
-//                        .collect(Collectors.toList());
-//                final String signatureHash = generateMethodSignatureHash(name, parameterTypes);
-//                final String description;
-//                try {
-//                    final URL resource = Optional.ofNullable(classLoader
-//                            .getResource(ALLURE_DESCRIPTIONS_PACKAGE + signatureHash))
-//                            .orElseThrow(IOException::new);
-//                    description = Resources.toString(resource, Charset.defaultCharset());
-//                    if (separateLines()) {
-//                        item.withDescriptionHtml(description.replace("\n", "<br />"));
-//                    } else {
-//                        item.withDescriptionHtml(description);
-//                    }
-//                } catch (IOException e) {
-//                    LOGGER.warn("Unable to process description resource file for method {} {}", name, e.getMessage());
-//                }
-//            } else {
-//                final String description = method.getAnnotation(Description.class).value();
-//                item.withDescription(description);
-//            }
-//        }
-//    }
+    /*
+    public static void processDescription(final ClassLoader classLoader, final Method method,
+                                          final ExecutableItem item) {
+        if (method.isAnnotationPresent(Description.class)) {
+            if (method.getAnnotation(Description.class).useJavaDoc()) {
+                final String name = method.getName();
+                final List<String> parameterTypes = Stream.of(method.getParameterTypes()).map(Class::getTypeName)
+                        .collect(Collectors.toList());
+                final String signatureHash = generateMethodSignatureHash(name, parameterTypes);
+                final String description;
+                try {
+                    final URL resource = Optional.ofNullable(classLoader
+                            .getResource(ALLURE_DESCRIPTIONS_PACKAGE + signatureHash))
+                            .orElseThrow(IOException::new);
+                    description = Resources.toString(resource, Charset.defaultCharset());
+                    if (separateLines()) {
+                        item.withDescriptionHtml(description.replace("\n", "<br />"));
+                    } else {
+                        item.withDescriptionHtml(description);
+                    }
+                } catch (IOException e) {
+                    LOGGER.warn("Unable to process description resource file for method {} {}", name, e.getMessage());
+                }
+            } else {
+                final String description = method.getAnnotation(Description.class).value();
+                item.withDescription(description);
+            }
+        }
+    }
+    */
 
+    @SuppressWarnings("PMD.UnusedPrivateMethod")
     private static boolean separateLines() {
         return parseBoolean(loadAllureProperties().getProperty(ALLURE_SEPARATE_LINES_SYSPROP));
     }
