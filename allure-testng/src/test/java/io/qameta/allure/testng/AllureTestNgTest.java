@@ -939,4 +939,24 @@ public class AllureTestNgTest {
                 .flatExtracting(FixtureResult::getName)
                 .containsExactly(befores);
     }
+
+    @Story("Suite")
+    @Feature("Test fixtures")
+    @Test(description = "Suite fixtures")
+    public void beforeFixtureCombination() {
+        runTestNgSuites("suites/before-fixture-combination.xml");
+
+        List<TestResult> testResult = results.getTestResults();
+        List<TestResultContainer> testContainers = results.getTestContainers();
+
+        assertThat(testResult).as("Unexpected quantity of testng case results has been written")
+                .hasSize(1);
+
+        assertThat(testContainers)
+                .flatExtracting(TestResultContainer::getBefores)
+                .extracting(FixtureResult::getName)
+                .containsExactly("beforeSuite", "beforeClass", "beforeTest", "beforeMethod");
+    }
+
+
 }

@@ -7,6 +7,7 @@ build
 .idea
 *.iml
 *.ipr
+out
 
 #Eclipse files
 *.settings
