@@ -9,13 +9,6 @@ pipeline {
         stage('Build') {
             steps {
                 parallel(
-                    'java8': {
-                        script {
-                            docker.image('java:8-jdk').inside {
-                                sh './gradlew build'
-                            }
-                        }
-                    },
                     'java9': {
                         script {
                             docker.image('java:9-jdk').inside {
