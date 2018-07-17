@@ -22,7 +22,7 @@ pipeline {
                 stage("Build on JDK9") {
                     agent {
                         docker {
-                            image 'gradle:jdk9g'
+                            image 'gradle:jdk9'
                             reuseNode true
                         }
                     }
