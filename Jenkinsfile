@@ -11,7 +11,7 @@ pipeline {
                 parallel(
                     'java8': {
                         script {
-                            docker.image('java:8-jdk') {
+                            docker.image('java:8-jdk').inside {
                                 sh './gradlew build'
                             }
                         }
