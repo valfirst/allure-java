@@ -15,7 +15,7 @@ pipeline {
                                 sh './gradlew build'
                             }
                         }
-                    }
+                    },
                     'java9': {
                         script {
                             docker.image('java:9-jdk').inside {
