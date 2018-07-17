@@ -1,5 +1,5 @@
 pipeline {
-    agent { label 'java' }
+    agent { label 'docker' }
     parameters {
         booleanParam(name: 'RELEASE', defaultValue: false, description: 'Perform release?')
         string(name: 'RELEASE_VERSION', defaultValue: '', description: 'Release version')
@@ -8,7 +8,13 @@ pipeline {
     stages {
         stage('Build') {
             steps {
-                sh './gradlew build'
+                parallel {
+                    'java8': {
+                        docker.image('java:8-jdk') {
+                            sh './gradlew build'
+                        }
+                    }
+                }
             }
         }
         stage('Release') {
