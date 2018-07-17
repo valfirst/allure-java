@@ -8,13 +8,13 @@ pipeline {
     stages {
         stage('Build') {
             steps {
-                parallel {
+                parallel(
                     'java8': {
                         docker.image('java:8-jdk') {
                             sh './gradlew build'
                         }
                     }
-                }
+                )
             }
         }
         stage('Release') {
