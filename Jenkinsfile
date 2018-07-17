@@ -11,7 +11,7 @@ pipeline {
                 stage("Build on JDK8") {
                     agent {
                         docker {
-                            image 'java:8-jdk'
+                            image 'gradle:jdk8'
                             reuseNode true
                         }
                     }
@@ -22,7 +22,7 @@ pipeline {
                 stage("Build on JDK9") {
                     agent {
                         docker {
-                            image 'java:9-jdk'
+                            image 'gradle:jdk9g'
                             reuseNode true
                         }
                     }
