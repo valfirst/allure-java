@@ -7,20 +7,24 @@ pipeline {
     }
     stages {
         stage('Build') {
+            agent {
+                docker {
+                    image 'java:8-jdk'
+                    reuseNode true
+                }
+            }
             steps {
-                parallel(
-                    'java9': {
-                        script {
-                            docker.image('java:9-jdk').inside {
-                                sh './gradlew build'
-                            }
-                        }
-                    }
-                )
+                sh './gradlew build'
             }
         }
         stage('Release') {
             when { expression { return params.RELEASE } }
+            agent {
+                docker {
+                    image 'java:8-jdk'
+                    reuseNode true
+                }
+            }
             steps {
                 withCredentials([usernamePassword(credentialsId: 'qameta-ci_bintray',
                         usernameVariable: 'BINTRAY_USER', passwordVariable: 'BINTRAY_API_KEY')]) {
