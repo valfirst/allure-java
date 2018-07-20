@@ -7,19 +7,21 @@ pipeline {
     }
     stages {
         stage('Build') {
-            script {
-                docker.image('gradle:jdk8').inside {
-                    sh './gradlew build'
+            steps {
+                script {
+                    docker.image('gradle:jdk8').inside {
+                        sh './gradlew build'
+                    }
                 }
-            }
-            script {
-                docker.image('gradle:jdk9').inside {
-                    sh './gradlew build'
+                script {
+                    docker.image('gradle:jdk9').inside {
+                        sh './gradlew build'
+                    }
                 }
-            }
-            script {
-                docker.image('gradle:jdk10').inside {
-                    sh './gradlew build'
+                script {
+                    docker.image('gradle:jdk10').inside {
+                        sh './gradlew build'
+                    }
                 }
             }
         }
