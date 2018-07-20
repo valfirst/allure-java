@@ -7,28 +7,19 @@ pipeline {
     }
     stages {
         stage('Build') {
-            parallel {
-                stage("Build on JDK8") {
-                    agent {
-                        docker {
-                            image 'gradle:jdk8'
-                            reuseNode true
-                        }
-                    }
-                    steps {
-                        sh './gradlew build'
-                    }
+            script {
+                docker.image('gradle:jdk8').inside {
+                    sh './gradlew build'
                 }
-                stage("Build on JDK9") {
-                    agent {
-                        docker {
-                            image 'gradle:jdk9'
-                            reuseNode true
-                        }
-                    }
-                    steps {
-                        sh './gradlew build'
-                    }
+            }
+            script {
+                docker.image('gradle:jdk9').inside {
+                    sh './gradlew build'
+                }
+            }
+            script {
+                docker.image('gradle:jdk10').inside {
+                    sh './gradlew build'
                 }
             }
         }
