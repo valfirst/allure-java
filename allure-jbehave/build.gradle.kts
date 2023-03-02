@@ -1,6 +1,6 @@
 description = "Allure JBehave Integration"
 
-val jbehaveVersion = "4.8.3"
+val jbehaveVersion = "5.1"
 
 dependencies {
     api(project(":allure-java-commons"))
